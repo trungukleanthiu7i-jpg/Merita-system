@@ -1,0 +1,114 @@
+$cyan: #00d4ff;
+$pink: #ff4fa3;
+$shadow: rgba(0, 0, 0, 0.12);
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.agent-info {
+  padding: 40px;
+  min-height: 100vh;
+  background: #ffffff;
+  animation: fadeInUp 0.6s ease forwards;
+
+  h2 {
+    text-align: center;
+    font-size: 34px;
+    margin-bottom: 40px;
+    font-weight: 700;
+    color: #333;
+  }
+
+  .form-container {
+    max-width: 500px;
+    margin: auto;
+    padding: 30px;
+    background: white;
+    border-radius: 14px;
+    border: 1px solid #ededed;
+    box-shadow: 0 4px 12px $shadow;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  input {
+    width: 100%;
+    padding: 14px;
+    font-size: 17px;
+    border-radius: 10px;
+    border: 1px solid #dcdcdc;
+    background: #fafafa;
+    transition: 0.2s ease;
+
+    &:focus {
+      border-color: $cyan;
+      box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+      outline: none;
+      background: white;
+    }
+  }
+
+  .signature-container {
+    margin-bottom: 20px;
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .sigCanvas {
+      border: 1px solid #dcdcdc;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 100%;
+      height: 200px;
+      background: #fafafa;
+    }
+
+    button {
+      margin-top: 8px;
+      padding: 6px 12px;
+      font-size: 14px;
+      border: none;
+      background: $pink;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s ease;
+
+      &:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(255, 79, 163, 0.5);
+      }
+    }
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(90deg, $cyan, $pink);
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    border: none;
+    border-radius: 10px;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: 0.25s ease;
+
+    &:hover {
+      transform: scale(1.07);
+      box-shadow: 0 0 22px rgba(255, 79, 163, 0.6);
+    }
+  }
+}
