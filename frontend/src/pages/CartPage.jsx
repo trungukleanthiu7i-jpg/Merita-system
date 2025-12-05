@@ -1,39 +1,36 @@
 import { useContext } from "react";
-import { CartContext } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
+import { CartContext } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 import { FaTrash } from "react-icons/fa";
 import "../styles/Cartpage.scss";
 
 export default function CartPage() {
-  const {
-    cart,
-    removeFromCart,
-    updateBoxes,
-    updatePrice,
-    clearCart,
-    totalBoxes, // For totals in summary box
-  } = useContext(CartContext);
-
+  const { cart, removeFromCart, updateBoxes, updatePrice, clearCart, totalBoxes } =
+    useContext(CartContext);
+  const { user } = useAuth();
   const navigate = useNavigate();
 
-  const next = () => {
-    navigate("/agent-info", { state: { items: cart } });
-  };
-
-  // Units contained within box
   const getItemUnits = (item) => {
-    const unitsPerBox = item.unitsPerBox || 1;
-    return Number(item.boxes || 0) * unitsPerBox;
+    const unitsPerBox = Number(item.unitsPerBox || 1);
+    const boxes = Number(item.boxes || 0);
+    const quantity = Number(item.quantity || 0);
+    return quantity + boxes * unitsPerBox;
   };
 
-  // Price calculation with editable price
   const getItemTotal = (item) => {
-    return getItemUnits(item) * item.customPrice;
+    const pricePerUnit = Number(item.customPrice ?? item.price ?? 0);
+    return getItemUnits(item) * pricePerUnit;
   };
 
-  // Totals
-  const totalUnits = cart.reduce((s, i) => s + getItemUnits(i), 0);
-  const totalOrder = cart.reduce((s, i) => s + getItemTotal(i), 0);
+  const totalUnits = cart.reduce((sum, item) => sum + getItemUnits(item), 0);
+  const totalOrder = cart.reduce((sum, item) => sum + getItemTotal(item), 0);
+
+  // Redirect to agent info page instead of sending order
+  const handleProceedToAgentInfo = () => {
+    if (cart.length === 0) return;
+    navigate("/agent-info"); // ← redirect to agent info page
+  };
 
   return (
     <div className="cart-page">
@@ -43,20 +40,15 @@ export default function CartPage() {
         <p className="empty-message">No products added yet.</p>
       ) : (
         cart.map((item) => (
-          <div className="cart-item" key={item._id}>
-            {/* IMAGE */}
+          <div className="cart-item" key={item.product}>
             <img
               src={`http://localhost:5000/images/${item.image}`}
               alt={item.name}
               className="cart-item-image"
             />
-
             <div className="item-info">
               <h3>{item.name}</h3>
-
-              {/* Boxes + Custom Price */}
               <div className="inputs-row">
-                {/* Boxes */}
                 <div>
                   <label>Boxes</label>
                   <input
@@ -64,12 +56,10 @@ export default function CartPage() {
                     min="0"
                     value={item.boxes || 0}
                     onChange={(e) =>
-                      updateBoxes(item._id, Number(e.target.value))
+                      updateBoxes(item.product, Number(e.target.value))
                     }
                   />
                 </div>
-
-                {/* Custom Price */}
                 <div>
                   <label>Price / unit</label>
                   <input
@@ -78,21 +68,18 @@ export default function CartPage() {
                     min="0"
                     value={item.customPrice}
                     onChange={(e) =>
-                      updatePrice(item._id, Number(e.target.value))
+                      updatePrice(item.product, Number(e.target.value))
                     }
                   />
                 </div>
               </div>
-
               <p className="price">
                 Item Total: {getItemTotal(item).toFixed(2)} RON
               </p>
             </div>
-
-            {/* Delete */}
             <FaTrash
               className="delete-icon"
-              onClick={() => removeFromCart(item._id)}
+              onClick={() => removeFromCart(item.product)}
             />
           </div>
         ))
@@ -100,7 +87,6 @@ export default function CartPage() {
 
       {cart.length > 0 && (
         <>
-          {/* Summary Box */}
           <div className="summary-box">
             <h2>Order Summary</h2>
             <p>
@@ -114,13 +100,15 @@ export default function CartPage() {
             </p>
           </div>
 
-          {/* Bottom Buttons */}
           <div className="actions-row">
             <button className="clear-all-btn" onClick={clearCart}>
               Șterge tot
             </button>
 
-            <button onClick={next} className="submit-btn">
+            <button
+              onClick={handleProceedToAgentInfo} // ← redirect instead of sending
+              className="submit-btn"
+            >
               Trimis
             </button>
           </div>

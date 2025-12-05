@@ -1,63 +1,41 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
-// Components
+import React from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
 import Header from "./components/Header";
-
-// Client Pages
+import Login from "./components/Login";
 import ProductsPage from "./pages/ProductsPage";
-import CartPage from "./pages/CartPage";
-import AgentInfo from "./pages/AgentInfo";
-
-// Admin Pages
 import AdminDashboard from "./pages/AdminDashboard";
+import CartPage from "./pages/CartPage";
+import AgentInfo from "./pages/AgentInfo"; // ← import
+import AddProduct from "./pages/AddProduct";
 import AdminStats from "./pages/AdminStats";
-import AddProduct from "./pages/AddProduct";   // <-- NEW
 
-function AppWrapper() {
-  const location = useLocation();
+export default function App() {
+  const { user, loading } = useAuth();
 
-  // Hide header on admin routes
-  const hideHeader = location.pathname.startsWith("/admin");
+  if (loading) return <p>Loading...</p>;
+  if (!user) return <Login />;
 
   return (
     <>
-      {!hideHeader && <Header />}
-
+      <Header />
       <Routes>
-        {/* Client Routes */}
-        <Route path="/" element={<ProductsPage />} />
-        <Route path="/cart" element={<CartPage />} />
-        <Route path="/agent-info" element={<AgentInfo />} />
-
-        {/* Admin Routes */}
+        {user.role === "admin" ? (
+    <>
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/stats" element={<AdminStats />} />
-        <Route path="/admin/add-product" element={<AddProduct />} />  {/* NEW */}
-
-        {/* 404 */}
-        <Route path="*" element={<p style={{ textAlign: "center", marginTop: "50px" }}>Page not found</p>} />
-      </Routes>
-
-      {/* Toast notifications */}
-      <ToastContainer
-        position="top-center"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        pauseOnHover
-        draggable
-      />
+        <Route path="/admin/add-product" element={<AddProduct />} /> {/* ← noua pagină */}
+        <Route path="*" element={<Navigate to="/admin" />} />
     </>
-  );
-}
-
-export default function App() {
-  return (
-    <BrowserRouter>
-      <AppWrapper />
-    </BrowserRouter>
+          ) : (
+          <>
+            <Route path="/" element={<ProductsPage />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/agent-info" element={<AgentInfo />} /> {/* ← new route */}
+            <Route path="*" element={<Navigate to="/" />} />
+          </>
+        )}
+      </Routes>
+    </>
   );
 }

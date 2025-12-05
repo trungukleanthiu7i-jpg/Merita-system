@@ -1,6 +1,6 @@
 const express = require("express");
-const Order = require("../models/Order");
 const router = express.Router();
+const Order = require("../models/Order");
 
 /* ---------------------------------------
    GET ALL ORDERS (with search + date)
@@ -11,7 +11,7 @@ router.get("/orders", async (req, res) => {
 
     let query = {};
 
-    // FILTER: search by agent or magazin
+    // Search by agent or magazin
     if (search) {
       query.$or = [
         { agentName: { $regex: search, $options: "i" } },
@@ -19,9 +19,11 @@ router.get("/orders", async (req, res) => {
       ];
     }
 
-    // FILTER: by date (yyyy-mm-dd)
+    // Filter by date
     if (date) {
       const start = new Date(date);
+      start.setHours(0, 0, 0, 0);
+
       const end = new Date(date);
       end.setHours(23, 59, 59, 999);
 
@@ -29,38 +31,91 @@ router.get("/orders", async (req, res) => {
     }
 
     const orders = await Order.find(query).sort({ createdAt: -1 });
-
     res.json(orders);
   } catch (err) {
-    console.log("Admin GET orders error:", err);
-    res.status(500).json({ error: "Server error" });
+    console.error("Admin GET orders error:", err);
+    res.json([]); // always return array
   }
 });
 
 /* ---------------------------------------
-   GET ORDERS BY MAGAZINE (with optional date range)
+   GET MAGAZINE ORDERS (by name + optional date range)
 ---------------------------------------- */
 router.get("/magazine-orders", async (req, res) => {
   try {
     const { magazinName, startDate, endDate } = req.query;
 
-    if (!magazinName) return res.status(400).json({ message: "Magazine name is required" });
+    if (!magazinName)
+      return res.status(400).json({ message: "Magazine name is required" });
 
     const query = { magazinName };
 
-    if (startDate && endDate) {
-      query.createdAt = {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate)
-      };
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) query.createdAt.$lte = new Date(endDate);
     }
 
     const orders = await Order.find(query).sort({ createdAt: -1 });
 
+    console.log(`Magazine Orders Query:`, query);
+    console.log(`Found ${orders.length} orders`);
+
     res.json(orders);
   } catch (err) {
     console.error("Admin GET magazine-orders error:", err);
-    res.status(500).json({ message: "Server error" });
+    res.json([]);
+  }
+});
+
+/* ---------------------------------------
+   GET AGENT ORDERS (by name + optional date range)
+---------------------------------------- */
+router.get("/agent-orders", async (req, res) => {
+  try {
+    const { agentName, startDate, endDate } = req.query;
+
+    if (!agentName)
+      return res.status(400).json({ message: "Agent name is required" });
+
+    const query = { agentName };
+
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) query.createdAt.$lte = new Date(endDate);
+    }
+
+    const orders = await Order.find(query).sort({ createdAt: -1 });
+
+    console.log(`Agent Orders Query:`, query);
+    console.log(`Found ${orders.length} orders`);
+
+    res.json(orders);
+  } catch (err) {
+    console.error("Admin GET agent-orders error:", err);
+    res.json([]);
+  }
+});
+
+/* ---------------------------------------
+   GET unique magazines & agents
+---------------------------------------- */
+router.get("/orders-meta", async (req, res) => {
+  try {
+    const orders = await Order.find({});
+
+    const magazines = [
+      ...new Set(orders.map(o => o.magazinName).filter(Boolean))
+    ];
+    const agents = [
+      ...new Set(orders.map(o => o.agentName).filter(Boolean))
+    ];
+
+    res.json({ magazines, agents });
+  } catch (err) {
+    console.error("Admin GET orders-meta error:", err);
+    res.json({ magazines: [], agents: [] });
   }
 });
 
@@ -69,7 +124,9 @@ router.get("/magazine-orders", async (req, res) => {
 ---------------------------------------- */
 router.delete("/orders/:id", async (req, res) => {
   try {
-    await Order.findByIdAndDelete(req.params.id);
+    const deleted = await Order.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ message: "Order not found" });
+
     res.json({ message: "Order deleted successfully" });
   } catch (err) {
     console.error("Admin DELETE order error:", err);

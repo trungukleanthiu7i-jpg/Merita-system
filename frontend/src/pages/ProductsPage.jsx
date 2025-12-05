@@ -12,11 +12,17 @@ export default function ProductsPage() {
     const fetchProducts = async () => {
       try {
         const res = await axiosClient.get("/products");
-        setProducts(res.data || []);
-        setLoading(false);
+
+        // Ensure products is always an array
+        const productsData = Array.isArray(res.data)
+          ? res.data
+          : res.data.products || [];
+
+        setProducts(productsData);
       } catch (err) {
         console.error("Error fetching products:", err);
         setProducts([]);
+      } finally {
         setLoading(false);
       }
     };
@@ -25,7 +31,11 @@ export default function ProductsPage() {
   }, []);
 
   if (loading)
-    return <p style={{ textAlign: "center", marginTop: "50px" }}>Loading products...</p>;
+    return (
+      <p style={{ textAlign: "center", marginTop: "50px" }}>
+        Loading products...
+      </p>
+    );
 
   return (
     <div className="products-page">
@@ -36,35 +46,44 @@ export default function ProductsPage() {
           products.map((product) => {
             if (!product) return null;
 
-            const name = product?.name || "Unnamed product";
-            const price = product?.price ?? 0;
-            const stoc = (product?.stoc || "in stoc").trim().toLowerCase();
-            const unitsPerBox = product?.unitsPerBox || 1;
-            const image = product?.image || "/placeholder.png";
-
-            const isOutOfStock = stoc === "out of stoc";
+            const isOutOfStock =
+              (product.stoc || "in stoc").trim().toLowerCase() ===
+              "out of stoc";
 
             return (
               <div key={product._id} className="product-card">
-                <img src={`http://localhost:5000/images/${image}`} alt={name} />
+                <img
+                  src={`http://localhost:5000/images/${product.image || "placeholder.png"}`}
+                  alt={product.name || "Unnamed product"}
+                />
 
-                <h3>{name}</h3>
+                <h3>{product.name || "Unnamed product"}</h3>
 
-                <p><strong>Price:</strong> {price} RON</p>
-                <p><strong>Units per box:</strong> {unitsPerBox}</p>
+                <p>
+                  <strong>Price:</strong> {product.price ?? 0} RON
+                </p>
+                <p>
+                  <strong>Units per box:</strong>{" "}
+                  {product.unitsPerBox || 1}
+                </p>
 
                 <p className={isOutOfStock ? "out" : "in"}>
                   {isOutOfStock ? "OUT OF STOCK ❌" : "IN STOCK ✅"}
                 </p>
 
-                <button disabled={isOutOfStock} onClick={() => addToCart(product)}>
+                <button
+                  disabled={isOutOfStock}
+                  onClick={() => addToCart(product)}
+                >
                   {isOutOfStock ? "Unavailable" : "Add to Order"}
                 </button>
               </div>
             );
           })
         ) : (
-          <p style={{ textAlign: "center", marginTop: "50px" }}>No products available.</p>
+          <p style={{ textAlign: "center", marginTop: "50px" }}>
+            No products available.
+          </p>
         )}
       </div>
     </div>

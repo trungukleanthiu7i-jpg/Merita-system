@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useState, useRef, useContext } from "react";
 import axiosClient from "../api/axiosClient";
 import SignatureCanvas from "react-signature-canvas";
@@ -7,10 +7,8 @@ import { CartContext } from "../context/CartContext";
 import { toast } from "react-toastify";
 
 export default function AgentInfo() {
-  const location = useLocation();
-  const items = location.state?.items || [];
   const navigate = useNavigate();
-  const { clearCart } = useContext(CartContext);
+  const { clearCart, cart } = useContext(CartContext);
 
   const [agentName, setAgentName] = useState("");
   const [magazinName, setMagazinName] = useState("");
@@ -21,60 +19,95 @@ export default function AgentInfo() {
   const sigCanvas = useRef(null);
 
   const sendOrder = async () => {
-    if (!agentName.trim() || !magazinName.trim()) {
+    // 1️⃣ Validate required fields
+    if (
+      !agentName.trim() ||
+      !magazinName.trim() ||
+      !cui.trim() ||
+      !address.trim() ||
+      !responsiblePerson.trim()
+    ) {
       toast.error("Please fill in all required fields.");
       return;
     }
 
+    if (cart.length === 0) {
+      toast.error("Cart is empty!");
+      return;
+    }
+
+    // 2️⃣ Get signature data
     let signatureData = "";
     if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
       signatureData = sigCanvas.current.getCanvas().toDataURL("image/png");
+    } else {
+      toast.error("Please provide a signature.");
+      return;
+    }
+
+    // 3️⃣ Prepare items payload
+    const items = cart.map((item) => {
+      if (!item._id && item.product && item.product._id) {
+        item._id = item.product._id;
+      }
+      return {
+        _id: item._id,
+        name: item.name || item.product?.name || "Unnamed Product",
+        boxes: Number(item.boxes || 0),
+        quantity: Number(item.quantity || 0),
+        price: Number(item.customPrice ?? item.price ?? 0),
+        unitsPerBox: Number(item.unitsPerBox || 1),
+      };
+    });
+
+    // Validate items have _id
+    const invalidItem = items.find((i) => !i._id);
+    if (invalidItem) {
+      toast.error(`Invalid product in cart: ${invalidItem.name}`);
+      return;
     }
 
     const data = {
       items,
-      agentName,
-      magazinName,
-      cui,
-      address,
-      responsiblePerson,
+      agentName: agentName.trim(),
+      magazinName: magazinName.trim(),
+      cui: cui.trim(),
+      address: address.trim(),
+      responsiblePerson: responsiblePerson.trim(),
       signature: signatureData,
     };
 
     try {
-      await axiosClient.post("/orders/create", data);
+      // 4️⃣ Send order to backend
+      const response = await axiosClient.post("/orders/create", data);
 
-      // Show success toast
-      toast.success("Order sent successfully!");
+      // 5️⃣ Show success toast
+      toast.success(response.data?.message || "Order sent successfully!");
 
-      // Clear form fields
+      // 6️⃣ Clear cart, signature, and form fields
+      clearCart();
+      if (sigCanvas.current) sigCanvas.current.clear();
       setAgentName("");
       setMagazinName("");
       setCui("");
       setAddress("");
       setResponsiblePerson("");
-      sigCanvas.current.clear();
 
-      // Clear cart
-      clearCart();
-
-      // Redirect after a short delay so user can see the toast
-      setTimeout(() => {
-        navigate("/");
-      }, 1000);
+      // 7️⃣ Redirect to products page
+      navigate("/");
     } catch (err) {
-      console.error(err);
-      toast.error("Error sending order.");
+      console.error("Error sending order:", err);
+      toast.error(err.response?.data?.message || "Error sending order.");
     }
   };
 
   const clearSignature = () => {
-    sigCanvas.current.clear();
+    if (sigCanvas.current) sigCanvas.current.clear();
   };
 
   return (
     <div className="agent-info">
-      <h2>Agent Information</h2>
+      <h2>Complete Order Details</h2>
 
       <div className="form-container">
         <input

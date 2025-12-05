@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import axiosClient from "../api/axiosClient"; // auth-enabled axios instance
 import "../styles/AdminDashboard.scss";
 
 const MagazineOrders = () => {
@@ -14,8 +14,14 @@ const MagazineOrders = () => {
   useEffect(() => {
     const fetchMagazines = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/admin/orders");
-        const names = [...new Set(res.data.map(order => order.magazinName))];
+        const res = await axiosClient.get("/admin/orders"); // <- uses token automatically
+        const names = [
+          ...new Set(
+            res.data
+              .map((order) => order.magazinName)
+              .filter(Boolean)
+          ),
+        ];
         setMagazines(names);
       } catch (err) {
         console.error("Error fetching magazines:", err);
@@ -29,30 +35,33 @@ const MagazineOrders = () => {
     if (!selectedMagazine) return alert("Please select a magazine");
 
     try {
-      const res = await axios.get(
-        `http://localhost:5000/api/admin/magazine-orders`,
-        {
-          params: {
-            magazinName: selectedMagazine,
-            startDate,
-            endDate
-          }
-        }
-      );
-      setOrders(res.data);
-
-      // Aggregate product quantities
-      const stats = {};
-      res.data.forEach(order => {
-        order.products.forEach(item => {
-          const name = item.productName || item.productId?.name;
-          if (!stats[name]) stats[name] = 0;
-          stats[name] += item.quantity;
-        });
+      const res = await axiosClient.get("/admin/magazine-orders", {
+        params: { magazinName: selectedMagazine, startDate, endDate },
       });
+
+      const ordersData = Array.isArray(res.data) ? res.data : [];
+      setOrders(ordersData);
+
+      // Aggregate product totals
+      const stats = {};
+      ordersData.forEach((order) => {
+        if (Array.isArray(order.items)) {
+          order.items.forEach((item) => {
+            const name = item.name || "Unnamed Product";
+            const totalUnits =
+              Number(item.quantity || 0) +
+              Number(item.boxes || 0) * Number(item.unitsPerBox || 1);
+
+            if (!stats[name]) stats[name] = 0;
+            stats[name] += totalUnits;
+          });
+        }
+      });
+
       setProductStats(stats);
     } catch (err) {
-      console.error("Error fetching orders:", err);
+      console.error("Error fetching magazine orders:", err);
+      setProductStats({});
     }
   };
 
@@ -65,11 +74,13 @@ const MagazineOrders = () => {
           Magazine:{" "}
           <select
             value={selectedMagazine}
-            onChange={e => setSelectedMagazine(e.target.value)}
+            onChange={(e) => setSelectedMagazine(e.target.value)}
           >
             <option value="">-- Select Magazine --</option>
-            {magazines.map(name => (
-              <option key={name} value={name}>{name}</option>
+            {magazines.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
             ))}
           </select>
         </label>
@@ -79,7 +90,7 @@ const MagazineOrders = () => {
           <input
             type="date"
             value={startDate}
-            onChange={e => setStartDate(e.target.value)}
+            onChange={(e) => setStartDate(e.target.value)}
           />
         </label>
 
@@ -88,7 +99,7 @@ const MagazineOrders = () => {
           <input
             type="date"
             value={endDate}
-            onChange={e => setEndDate(e.target.value)}
+            onChange={(e) => setEndDate(e.target.value)}
           />
         </label>
 
@@ -105,7 +116,7 @@ const MagazineOrders = () => {
         <thead>
           <tr>
             <th>Product Name</th>
-            <th>Total Quantity</th>
+            <th>Total Units Sold</th>
           </tr>
         </thead>
         <tbody>

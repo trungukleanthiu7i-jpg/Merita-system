@@ -8,8 +8,6 @@ const ProductSchema = new mongoose.Schema(
     category: { type: String, required: true },
     unitsPerBox: { type: Number, required: true },
     image: { type: String, default: "" },
-
-    // ADD THIS ⬇️⬇️⬇️
     stoc: {
       type: String,
       enum: ["in stoc", "out of stoc"],
@@ -19,4 +17,5 @@ const ProductSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Product", ProductSchema);
+// Explicitly set collection name to match your MongoDB Atlas collection
+module.exports = mongoose.model("Product", ProductSchema, "products");

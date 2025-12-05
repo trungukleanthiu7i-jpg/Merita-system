@@ -1,19 +1,59 @@
-import { createContext, useState } from "react";
+// src/context/CartContext.jsx
+import { createContext, useState, useEffect } from "react";
+import axios from "axios";
 
 export const CartContext = createContext();
 
+// --------------------
+// Axios client
+// --------------------
+const axiosClient = axios.create({
+  baseURL: "http://localhost:5000/api",
+  headers: { "Content-Type": "application/json" },
+});
+
 export function CartProvider({ children }) {
+  const [products, setProducts] = useState([]);
+  const [productsStock, setProductsStock] = useState({});
   const [cart, setCart] = useState([]);
 
+  // --------------------
+  // Fetch products
+  // --------------------
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axiosClient.get("/products");
+        setProducts(res.data);
+
+        // Create mapping: productId -> stock
+        const stockMap = {};
+        res.data.forEach((p) => {
+          stockMap[p._id] = p.stoc || "in stoc";
+        });
+        setProductsStock(stockMap);
+      } catch (err) {
+        console.error("Error fetching products:", err);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  // --------------------
   // Add product to cart
+  // --------------------
   const addToCart = (product) => {
+    const stock = productsStock[product._id] || "in stoc";
+    if (stock === "out of stoc") return;
+
     const exists = cart.find((item) => item._id === product._id);
 
     if (exists) {
       setCart(
         cart.map((item) =>
           item._id === product._id
-            ? { ...item, boxes: item.boxes + 1 }
+            ? { ...item, boxes: (item.boxes || 0) + 1 }
             : item
         )
       );
@@ -21,24 +61,47 @@ export function CartProvider({ children }) {
       setCart([
         ...cart,
         {
-          ...product,
-          boxes: 1, // Start with 1 box for new product
+          _id: product._id,
+          name: product.name,
+          boxes: 1,
+          quantity: 0,
+          price: product.price || 0,
           customPrice: product.price || 0,
+          unitsPerBox: product.unitsPerBox || 1,
+          image: product.image || "",
         },
       ]);
     }
   };
 
-  // Update number of boxes
-  const updateBoxes = (id, boxCount) => {
+  // --------------------
+  // Update boxes
+  // --------------------
+  const updateBoxes = (id, boxes) => {
+    const stock = productsStock[id] || "in stoc";
+    if (stock === "out of stoc") return;
+
     setCart(
       cart.map((item) =>
-        item._id === id ? { ...item, boxes: Number(boxCount) } : item
+        item._id === id ? { ...item, boxes: Number(boxes) } : item
       )
     );
   };
 
+  // --------------------
+  // Update quantity (single units)
+  // --------------------
+  const updateQuantity = (id, quantity) => {
+    setCart(
+      cart.map((item) =>
+        item._id === id ? { ...item, quantity: Number(quantity) } : item
+      )
+    );
+  };
+
+  // --------------------
   // Update price override
+  // --------------------
   const updatePrice = (id, price) => {
     setCart(
       cart.map((item) =>
@@ -47,26 +110,33 @@ export function CartProvider({ children }) {
     );
   };
 
-  // Remove one product
+  // --------------------
+  // Remove product
+  // --------------------
   const removeFromCart = (id) => {
     setCart(cart.filter((item) => item._id !== id));
   };
 
-  // Clear entire cart
-  const clearCart = () => {
-    setCart([]);
-  };
+  // --------------------
+  // Clear cart
+  // --------------------
+  const clearCart = () => setCart([]);
 
-  // Total boxes (sum of all products)
+  // --------------------
+  // Total boxes
+  // --------------------
   const totalBoxes = cart.reduce((sum, item) => sum + (item.boxes || 0), 0);
 
   return (
     <CartContext.Provider
       value={{
         cart,
-        totalBoxes, // Expose total boxes for badge
+        totalBoxes,
+        products,
+        productsStock,
         addToCart,
         updateBoxes,
+        updateQuantity,
         updatePrice,
         removeFromCart,
         clearCart,
