@@ -19,7 +19,6 @@ export default function AgentInfo() {
   const sigCanvas = useRef(null);
 
   const sendOrder = async () => {
-    // 1️⃣ Validate required fields
     if (
       !agentName.trim() ||
       !magazinName.trim() ||
@@ -36,7 +35,6 @@ export default function AgentInfo() {
       return;
     }
 
-    // 2️⃣ Get signature data
     let signatureData = "";
     if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
       signatureData = sigCanvas.current.getCanvas().toDataURL("image/png");
@@ -45,9 +43,8 @@ export default function AgentInfo() {
       return;
     }
 
-    // 3️⃣ Prepare items payload
     const items = cart.map((item) => {
-      if (!item._id && item.product && item.product._id) {
+      if (!item._id && item.product?.id) {
         item._id = item.product._id;
       }
       return {
@@ -60,7 +57,6 @@ export default function AgentInfo() {
       };
     });
 
-    // Validate items have _id
     const invalidItem = items.find((i) => !i._id);
     if (invalidItem) {
       toast.error(`Invalid product in cart: ${invalidItem.name}`);
@@ -78,22 +74,25 @@ export default function AgentInfo() {
     };
 
     try {
-      // 4️⃣ Send order to backend
+      // 4️⃣ Add token (VERY IMPORTANT)
+      const token = localStorage.getItem("token");
+      axiosClient.defaults.headers.common["Authorization"] = token
+        ? `Bearer ${token}`
+        : "";
+
+      // 5️⃣ Send order
       const response = await axiosClient.post("/orders/create", data);
 
-      // 5️⃣ Show success toast
       toast.success(response.data?.message || "Order sent successfully!");
-
-      // 6️⃣ Clear cart, signature, and form fields
       clearCart();
-      if (sigCanvas.current) sigCanvas.current.clear();
+      sigCanvas.current?.clear();
+
       setAgentName("");
       setMagazinName("");
       setCui("");
       setAddress("");
       setResponsiblePerson("");
 
-      // 7️⃣ Redirect to products page
       navigate("/");
     } catch (err) {
       console.error("Error sending order:", err);
@@ -101,9 +100,7 @@ export default function AgentInfo() {
     }
   };
 
-  const clearSignature = () => {
-    if (sigCanvas.current) sigCanvas.current.clear();
-  };
+  const clearSignature = () => sigCanvas.current?.clear();
 
   return (
     <div className="agent-info">
