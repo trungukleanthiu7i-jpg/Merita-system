@@ -18,8 +18,12 @@ export default function CartPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+<<<<<<< HEAD
   const API_URL = process.env.REACT_APP_API_URL;
 
+=======
+  // Calculate total units for an item
+>>>>>>> 11efd63 (Fix CartPage inputs and CartContext: boxes & price editable)
   const getItemUnits = (item) => {
     const unitsPerBox = Number(item.unitsPerBox || 1);
     const boxes = Number(item.boxes || 0);
@@ -27,14 +31,20 @@ export default function CartPage() {
     return quantity + boxes * unitsPerBox;
   };
 
+  // Calculate total price for an item
   const getItemTotal = (item) => {
     const pricePerUnit = Number(item.customPrice ?? item.price ?? 0);
     return getItemUnits(item) * pricePerUnit;
   };
 
+  // Overall totals
   const totalUnits = cart.reduce((sum, item) => sum + getItemUnits(item), 0);
   const totalOrder = cart.reduce((sum, item) => sum + getItemTotal(item), 0);
 
+<<<<<<< HEAD
+=======
+  // Redirect to agent info page
+>>>>>>> 11efd63 (Fix CartPage inputs and CartContext: boxes & price editable)
   const handleProceedToAgentInfo = () => {
     if (cart.length === 0) return;
     navigate("/agent-info");
@@ -48,7 +58,7 @@ export default function CartPage() {
         <p className="empty-message">No products added yet.</p>
       ) : (
         cart.map((item) => (
-          <div className="cart-item" key={item.product}>
+          <div className="cart-item" key={item._id}>
             <img
               src={`${API_URL}/images/${item.image}`}
               alt={item.name}
@@ -64,9 +74,7 @@ export default function CartPage() {
                     type="number"
                     min="0"
                     value={item.boxes || 0}
-                    onChange={(e) =>
-                      updateBoxes(item.product, Number(e.target.value))
-                    }
+                    onChange={(e) => updateBoxes(item._id, Number(e.target.value))}
                   />
                 </div>
 
@@ -76,10 +84,8 @@ export default function CartPage() {
                     type="number"
                     step="0.01"
                     min="0"
-                    value={item.customPrice}
-                    onChange={(e) =>
-                      updatePrice(item.product, Number(e.target.value))
-                    }
+                    value={item.customPrice ?? item.price ?? 0}
+                    onChange={(e) => updatePrice(item._id, Number(e.target.value))}
                   />
                 </div>
               </div>
@@ -91,7 +97,7 @@ export default function CartPage() {
 
             <FaTrash
               className="delete-icon"
-              onClick={() => removeFromCart(item.product)}
+              onClick={() => removeFromCart(item._id)}
             />
           </div>
         ))
@@ -117,7 +123,14 @@ export default function CartPage() {
               Șterge tot
             </button>
 
+<<<<<<< HEAD
             <button onClick={handleProceedToAgentInfo} className="submit-btn">
+=======
+            <button
+              onClick={handleProceedToAgentInfo}
+              className="submit-btn"
+            >
+>>>>>>> 11efd63 (Fix CartPage inputs and CartContext: boxes & price editable)
               Trimis
             </button>
           </div>
