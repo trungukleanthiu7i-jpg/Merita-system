@@ -8,12 +8,13 @@ export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const API_URL = process.env.REACT_APP_API_URL;
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const res = await axiosClient.get("/products");
 
-        // Ensure products is always an array
         const productsData = Array.isArray(res.data)
           ? res.data
           : res.data.products || [];
@@ -53,7 +54,7 @@ export default function ProductsPage() {
             return (
               <div key={product._id} className="product-card">
                 <img
-                  src={`http://localhost:5000/images/${product.image || "placeholder.png"}`}
+                  src={`${API_URL}/images/${product.image || "placeholder.png"}`}
                   alt={product.name || "Unnamed product"}
                 />
 
