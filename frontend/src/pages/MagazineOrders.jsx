@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axiosClient from "../api/axiosClient"; // auth-enabled axios instance
+import axiosClient from "../api/axiosClient";
 import "../styles/AdminDashboard.scss";
 
 const MagazineOrders = () => {
@@ -10,16 +10,19 @@ const MagazineOrders = () => {
   const [orders, setOrders] = useState([]);
   const [productStats, setProductStats] = useState({});
 
-  // Fetch all distinct magazine names from orders
   useEffect(() => {
+    // 🔥 ADD AUTH TOKEN HERE
+    const token = localStorage.getItem("token");
+    axiosClient.defaults.headers.common["Authorization"] = token
+      ? `Bearer ${token}`
+      : "";
+
     const fetchMagazines = async () => {
       try {
-        const res = await axiosClient.get("/admin/orders"); // <- uses token automatically
+        const res = await axiosClient.get("/admin/orders");
         const names = [
           ...new Set(
-            res.data
-              .map((order) => order.magazinName)
-              .filter(Boolean)
+            res.data.map(order => order.magazinName).filter(Boolean)
           ),
         ];
         setMagazines(names);
@@ -27,10 +30,11 @@ const MagazineOrders = () => {
         console.error("Error fetching magazines:", err);
       }
     };
+
     fetchMagazines();
   }, []);
 
-  // Fetch orders for selected magazine and date range
+  // Fetch filtered orders
   const fetchOrders = async () => {
     if (!selectedMagazine) return alert("Please select a magazine");
 
@@ -42,20 +46,16 @@ const MagazineOrders = () => {
       const ordersData = Array.isArray(res.data) ? res.data : [];
       setOrders(ordersData);
 
-      // Aggregate product totals
       const stats = {};
-      ordersData.forEach((order) => {
-        if (Array.isArray(order.items)) {
-          order.items.forEach((item) => {
-            const name = item.name || "Unnamed Product";
-            const totalUnits =
-              Number(item.quantity || 0) +
-              Number(item.boxes || 0) * Number(item.unitsPerBox || 1);
+      ordersData.forEach(order => {
+        (order.items || []).forEach(item => {
+          const name = item.name || "Unnamed Product";
+          const totalUnits =
+            Number(item.quantity || 0) +
+            Number(item.boxes || 0) * Number(item.unitsPerBox || 1);
 
-            if (!stats[name]) stats[name] = 0;
-            stats[name] += totalUnits;
-          });
-        }
+          stats[name] = (stats[name] || 0) + totalUnits;
+        });
       });
 
       setProductStats(stats);
@@ -78,9 +78,7 @@ const MagazineOrders = () => {
           >
             <option value="">-- Select Magazine --</option>
             {magazines.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
+              <option key={name} value={name}>{name}</option>
             ))}
           </select>
         </label>
@@ -112,6 +110,7 @@ const MagazineOrders = () => {
       </div>
 
       <h3>Product Stats</h3>
+
       <table border="1" cellPadding="5">
         <thead>
           <tr>
@@ -121,9 +120,7 @@ const MagazineOrders = () => {
         </thead>
         <tbody>
           {Object.keys(productStats).length === 0 ? (
-            <tr>
-              <td colSpan="2">No orders found</td>
-            </tr>
+            <tr><td colSpan="2">No orders found</td></tr>
           ) : (
             Object.entries(productStats).map(([name, qty]) => (
               <tr key={name}>
