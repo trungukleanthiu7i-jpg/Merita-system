@@ -1,16 +1,8 @@
 // src/context/CartContext.jsx
 import { createContext, useState, useEffect } from "react";
-import axios from "axios";
+import axiosClient from "../api/axiosClient"; // ← FOARTE IMPORTANT
 
 export const CartContext = createContext();
-
-// --------------------
-// Axios client
-// --------------------
-const axiosClient = axios.create({
-  baseURL: "http://localhost:5000/api",
-  headers: { "Content-Type": "application/json" },
-});
 
 export function CartProvider({ children }) {
   const [products, setProducts] = useState([]);
@@ -26,7 +18,7 @@ export function CartProvider({ children }) {
         const res = await axiosClient.get("/products");
         setProducts(res.data);
 
-        // Create mapping: productId -> stock
+        // Build stock map
         const stockMap = {};
         res.data.forEach((p) => {
           stockMap[p._id] = p.stoc || "in stoc";
@@ -41,7 +33,7 @@ export function CartProvider({ children }) {
   }, []);
 
   // --------------------
-  // Add product to cart
+  // Add to cart
   // --------------------
   const addToCart = (product) => {
     const stock = productsStock[product._id] || "in stoc";
@@ -89,42 +81,33 @@ export function CartProvider({ children }) {
   };
 
   // --------------------
-  // Update quantity (single units)
+  // Update quantity
   // --------------------
-  const updateQuantity = (id, quantity) => {
+  const updateQuantity = (id, quantity) =>
     setCart(
       cart.map((item) =>
         item._id === id ? { ...item, quantity: Number(quantity) } : item
       )
     );
-  };
 
   // --------------------
   // Update price override
   // --------------------
-  const updatePrice = (id, price) => {
+  const updatePrice = (id, price) =>
     setCart(
       cart.map((item) =>
         item._id === id ? { ...item, customPrice: Number(price) } : item
       )
     );
-  };
 
   // --------------------
-  // Remove product
+  // Remove from cart
   // --------------------
-  const removeFromCart = (id) => {
+  const removeFromCart = (id) =>
     setCart(cart.filter((item) => item._id !== id));
-  };
 
-  // --------------------
-  // Clear cart
-  // --------------------
   const clearCart = () => setCart([]);
 
-  // --------------------
-  // Total boxes
-  // --------------------
   const totalBoxes = cart.reduce((sum, item) => sum + (item.boxes || 0), 0);
 
   return (
