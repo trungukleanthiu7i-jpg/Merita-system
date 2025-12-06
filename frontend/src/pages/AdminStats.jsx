@@ -25,21 +25,18 @@ export default function AdminStats() {
 
         setOrders(data);
 
-        // Compute product stats using boxes + quantity
+        // Compute product stats using boxes only
         const productCount = {};
         data.forEach(order => {
           (order.items || []).forEach(item => {
             const boxes = Number(item.boxes || 0);
-            const unitsPerBox = Number(item.unitsPerBox || 0);
-            const quantity = Number(item.quantity || 0);
-            const totalUnits = quantity + boxes * unitsPerBox;
 
             if (!productCount[item.name]) productCount[item.name] = 0;
-            productCount[item.name] += boxes;
+            productCount[item.name] += boxes; // <-- Changed: count only boxes
           });
         });
 
-        // Sort products by total units sold
+        // Sort products by total boxes sold
         const sortedProducts = Object.entries(productCount).sort((a, b) => b[1] - a[1]);
 
         setProductStats({
@@ -70,9 +67,7 @@ export default function AdminStats() {
           sum +
           (order.items || []).reduce((s, item) => {
             const boxes = Number(item.boxes || 0);
-            const unitsPerBox = Number(item.unitsPerBox || 0);
-            const quantity = Number(item.quantity || 0);
-            return s + boxes;
+            return s + boxes; // <-- Changed: count only boxes
           }, 0),
         0
       )
@@ -86,7 +81,7 @@ export default function AdminStats() {
             const boxes = Number(item.boxes || 0);
             const unitsPerBox = Number(item.unitsPerBox || 0);
             const quantity = Number(item.quantity || 0);
-            const totalUnits = quantity + boxes * unitsPerBox;
+            const totalUnits = quantity + boxes * unitsPerBox; // keep revenue calculation unchanged
             return s + totalUnits * Number(item.price || 0);
           }, 0),
         0
@@ -106,14 +101,14 @@ export default function AdminStats() {
         </div>
 
         {/* Product Stats */}
-        <h3 className="product-stats-title">Product Stats (by total units)</h3>
+        <h3 className="product-stats-title">Product Stats (by total boxes)</h3>
         <div className="product-stats">
           <div className="stat-box">
             <h4>Most Sold Products</h4>
             <ul>
               {productStats.mostSold.map(([name, boxes], idx) => (
                 <li key={idx}>
-                  {name} - {units} units
+                  {name} - {boxes} boxes {/* <-- Changed: display boxes */}
                 </li>
               ))}
             </ul>
@@ -122,9 +117,9 @@ export default function AdminStats() {
           <div className="stat-box">
             <h4>Least Sold Products</h4>
             <ul>
-              {productStats.leastSold.map(([name, units], idx) => (
+              {productStats.leastSold.map(([name, boxes], idx) => (
                 <li key={idx}>
-                  {name} - {units} units
+                  {name} - {boxes} boxes {/* <-- Changed: display boxes */}
                 </li>
               ))}
             </ul>
