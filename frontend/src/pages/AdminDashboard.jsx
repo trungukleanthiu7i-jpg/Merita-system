@@ -97,8 +97,12 @@ export default function AdminDashboard() {
     if (!token) return alert("You are not logged in");
 
     try {
-      const res = await axiosClient.get("/admin/magazine-orders", {
-        params: { magazineName: selectedMagazine, startDate, endDate },
+      const res = await axiosClient.get("/orders", { // <-- changed endpoint to /orders
+        params: { 
+          magazinName: selectedMagazine, 
+          startDate, 
+          endDate 
+        },
         headers: { Authorization: `Bearer ${token}` },
       });
 
