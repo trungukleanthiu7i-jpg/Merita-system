@@ -6,10 +6,19 @@ import { FaTrash } from "react-icons/fa";
 import "../styles/Cartpage.scss";
 
 export default function CartPage() {
-  const { cart, removeFromCart, updateBoxes, updatePrice, clearCart, totalBoxes } =
-    useContext(CartContext);
+  const {
+    cart,
+    removeFromCart,
+    updateBoxes,
+    updatePrice,
+    clearCart,
+    totalBoxes,
+  } = useContext(CartContext);
+
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const API_URL = process.env.REACT_APP_API_URL;
 
   const getItemUnits = (item) => {
     const unitsPerBox = Number(item.unitsPerBox || 1);
@@ -26,10 +35,9 @@ export default function CartPage() {
   const totalUnits = cart.reduce((sum, item) => sum + getItemUnits(item), 0);
   const totalOrder = cart.reduce((sum, item) => sum + getItemTotal(item), 0);
 
-  // Redirect to agent info page instead of sending order
   const handleProceedToAgentInfo = () => {
     if (cart.length === 0) return;
-    navigate("/agent-info"); // ← redirect to agent info page
+    navigate("/agent-info");
   };
 
   return (
@@ -42,12 +50,13 @@ export default function CartPage() {
         cart.map((item) => (
           <div className="cart-item" key={item.product}>
             <img
-              src={`http://localhost:5000/images/${item.image}`}
+              src={`${API_URL}/images/${item.image}`}
               alt={item.name}
               className="cart-item-image"
             />
             <div className="item-info">
               <h3>{item.name}</h3>
+
               <div className="inputs-row">
                 <div>
                   <label>Boxes</label>
@@ -60,6 +69,7 @@ export default function CartPage() {
                     }
                   />
                 </div>
+
                 <div>
                   <label>Price / unit</label>
                   <input
@@ -73,10 +83,12 @@ export default function CartPage() {
                   />
                 </div>
               </div>
+
               <p className="price">
                 Item Total: {getItemTotal(item).toFixed(2)} RON
               </p>
             </div>
+
             <FaTrash
               className="delete-icon"
               onClick={() => removeFromCart(item.product)}
@@ -105,10 +117,7 @@ export default function CartPage() {
               Șterge tot
             </button>
 
-            <button
-              onClick={handleProceedToAgentInfo} // ← redirect instead of sending
-              className="submit-btn"
-            >
+            <button onClick={handleProceedToAgentInfo} className="submit-btn">
               Trimis
             </button>
           </div>
