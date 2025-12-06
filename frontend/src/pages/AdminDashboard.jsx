@@ -26,19 +26,19 @@ export default function AdminDashboard() {
     products: {},
   });
 
-  // Get token from localStorage
   const token = localStorage.getItem("token");
 
   // ===============================
   // FETCH ALL ORDERS
   // ===============================
   const fetchOrders = useCallback(async () => {
+    if (!token) return;
+
     try {
       const res = await axiosClient.get("/orders", {
         params: { search, date: selectedDate },
         headers: { Authorization: `Bearer ${token}` },
       });
-
       setOrders(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Error fetching orders:", err);
@@ -50,12 +50,13 @@ export default function AdminDashboard() {
   // FETCH MAGAZINES + AGENTS
   // ===============================
   const fetchMagazinesAndAgents = useCallback(async () => {
+    if (!token) return;
+
     try {
       const res = await axiosClient.get("/orders", {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = Array.isArray(res.data) ? res.data : [];
-
       setMagazines([...new Set(data.map((o) => o.magazinName).filter(Boolean))]);
       setAgents([...new Set(data.map((o) => o.agentName).filter(Boolean))]);
     } catch (err) {
@@ -73,6 +74,7 @@ export default function AdminDashboard() {
   // ===============================
   const deleteOrder = async (id) => {
     if (!window.confirm("Delete this order?")) return;
+    if (!token) return;
 
     try {
       await axiosClient.delete(`/orders/${id}`, {
@@ -92,6 +94,7 @@ export default function AdminDashboard() {
   // ===============================
   const fetchMagazineOrders = async () => {
     if (!selectedMagazine) return alert("Please select a magazine");
+    if (!token) return alert("You are not logged in");
 
     try {
       const res = await axiosClient.get("/admin/magazine-orders", {
@@ -107,7 +110,6 @@ export default function AdminDashboard() {
           const totalUnits =
             Number(item.quantity || 0) +
             Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
-
           stats[item.name] = (stats[item.name] || 0) + totalUnits;
         });
       });
@@ -124,6 +126,7 @@ export default function AdminDashboard() {
   // ===============================
   const fetchAgentOrders = async () => {
     if (!selectedAgent) return alert("Please select an agent");
+    if (!token) return alert("You are not logged in");
 
     try {
       const res = await axiosClient.get("/admin/agent-orders", {
@@ -146,7 +149,6 @@ export default function AdminDashboard() {
             Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
 
           totalRevenue += totalUnits * Number(item.price || 0);
-
           products[item.name] = (products[item.name] || 0) + totalUnits;
         });
       });
@@ -371,7 +373,9 @@ function OrderRow({ order, index, deleteOrder }) {
         <td>{order.cui}</td>
         <td>{order.address}</td>
         <td>{order.responsiblePerson}</td>
-        <td>{order.signature ? <img src={order.signature} alt="Signature" className="signature-img" /> : "N/A"}</td>
+        <td>
+          {order.signature ? <img src={order.signature} alt="Signature" className="signature-img" /> : "N/A"}
+        </td>
         <td>
           <button type="button" onClick={() => setOpen(!open)}>
             View
