@@ -109,8 +109,11 @@ export default function AdminDashboard() {
           const totalUnits =
             Number(item.quantity || 0) +
             Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+          const totalBoxes = Number(item.boxes || 0);
 
-          stats[item.name] = (stats[item.name] || 0) + totalUnits;
+          if (!stats[item.name]) stats[item.name] = { units: 0, boxes: 0 };
+          stats[item.name].units += totalUnits;
+          stats[item.name].boxes += totalBoxes;
         });
       });
 
@@ -140,9 +143,13 @@ export default function AdminDashboard() {
           const totalUnits =
             Number(item.quantity || 0) +
             Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+          const totalBoxes = Number(item.boxes || 0);
 
           totalRevenue += totalUnits * Number(item.price || 0);
-          products[item.name] = (products[item.name] || 0) + totalUnits;
+
+          if (!products[item.name]) products[item.name] = { units: 0, boxes: 0 };
+          products[item.name].units += totalUnits;
+          products[item.name].boxes += totalBoxes;
         });
       });
 
@@ -246,16 +253,18 @@ export default function AdminDashboard() {
           <tr>
             <th>Product</th>
             <th>Total Units Sold</th>
+            <th>Total Boxes Sold</th>
           </tr>
         </thead>
         <tbody>
           {Object.keys(magazineProductStats).length === 0 ? (
-            <tr><td colSpan="2" style={{ textAlign: "center" }}>No data</td></tr>
+            <tr><td colSpan="3" style={{ textAlign: "center" }}>No data</td></tr>
           ) : (
-            Object.entries(magazineProductStats).map(([name, qty]) => (
+            Object.entries(magazineProductStats).map(([name, data]) => (
               <tr key={name}>
                 <td>{name}</td>
-                <td>{qty}</td>
+                <td>{data.units}</td>
+                <td>{data.boxes}</td>
               </tr>
             ))
           )}
@@ -297,16 +306,18 @@ export default function AdminDashboard() {
             <tr>
               <th>Product</th>
               <th>Total Units Sold</th>
+              <th>Total Boxes Sold</th>
             </tr>
           </thead>
           <tbody>
             {Object.keys(agentStats.products).length === 0 ? (
-              <tr><td colSpan="2" style={{ textAlign: "center" }}>No data</td></tr>
+              <tr><td colSpan="3" style={{ textAlign: "center" }}>No data</td></tr>
             ) : (
-              Object.entries(agentStats.products).map(([name, qty]) => (
+              Object.entries(agentStats.products).map(([name, data]) => (
                 <tr key={name}>
                   <td>{name}</td>
-                  <td>{qty}</td>
+                  <td>{data.units}</td>
+                  <td>{data.boxes}</td>
                 </tr>
               ))
             )}
