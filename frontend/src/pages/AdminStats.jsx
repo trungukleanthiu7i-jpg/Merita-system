@@ -35,7 +35,7 @@ export default function AdminStats() {
             const totalUnits = quantity + boxes * unitsPerBox;
 
             if (!productCount[item.name]) productCount[item.name] = 0;
-            productCount[item.name] += totalUnits;
+            productCount[item.name] += boxes;
           });
         });
 
@@ -72,7 +72,7 @@ export default function AdminStats() {
             const boxes = Number(item.boxes || 0);
             const unitsPerBox = Number(item.unitsPerBox || 0);
             const quantity = Number(item.quantity || 0);
-            return s + quantity + boxes * unitsPerBox;
+            return s + boxes;
           }, 0),
         0
       )
@@ -111,7 +111,7 @@ export default function AdminStats() {
           <div className="stat-box">
             <h4>Most Sold Products</h4>
             <ul>
-              {productStats.mostSold.map(([name, units], idx) => (
+              {productStats.mostSold.map(([name, boxes], idx) => (
                 <li key={idx}>
                   {name} - {units} units
                 </li>
