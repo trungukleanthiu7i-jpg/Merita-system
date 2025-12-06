@@ -1,8 +1,10 @@
 // src/api/axiosClient.js
 import axios from "axios";
 
+const API_URL = process.env.REACT_APP_API_URL || "";  // fallback în caz că ENV lipsește
+
 const axiosClient = axios.create({
-  baseURL: process.env.REACT_APP_API_URL + "/api",
+  baseURL: `${API_URL}/api`,
 });
 
 // Attach token to every request
@@ -23,7 +25,7 @@ axiosClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
-      window.location.href = "/login"; // redirect to login
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   }
