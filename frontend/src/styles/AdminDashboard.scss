@@ -289,14 +289,48 @@
       }
     }
 
-    table th,
-    table td,
-    .details-products-table th,
-    .details-products-table td,
-    .magazine-stats-table th,
-    .magazine-stats-table td {
-      font-size: 14px;
+    table,
+    .details-products-table,
+    .magazine-stats-table {
+      display: block;
+      width: 100%;
+      overflow-x: auto;
+    }
+
+    /* Stack table rows vertically for small screens */
+    table tbody tr,
+    .details-products-table tbody tr,
+    .magazine-stats-table tbody tr {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
       padding: 10px;
+    }
+
+    table tbody td,
+    .details-products-table tbody td,
+    .magazine-stats-table tbody td {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 10px;
+      font-size: 14px;
+      border-bottom: 1px solid #eee;
+    }
+
+    table tbody td:last-child,
+    .details-products-table tbody td:last-child,
+    .magazine-stats-table tbody td:last-child {
+      border-bottom: 0;
+    }
+
+    table tbody td:before,
+    .details-products-table tbody td:before,
+    .magazine-stats-table tbody td:before {
+      content: attr(data-label);
+      font-weight: 600;
+      flex-basis: 50%;
     }
 
     .agent-product-stats,
@@ -307,19 +341,6 @@
       .stat-box {
         max-width: 90%;
       }
-    }
-  }
-
-  /* ================================
-     New: Display Total Units + Total Boxes
-  ================================== */
-  .magazine-stats-table td,
-  .agent-stats-section table td {
-    &:after {
-      content: attr(data-total-boxes) " boxes";
-      display: block;
-      font-size: 13px;
-      color: #555;
     }
   }
 }
