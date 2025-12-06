@@ -26,18 +26,23 @@ export default function AdminDashboard() {
     products: {},
   });
 
-  // 🔥 ADD AUTH HEADER TO axiosClient
-  const token = localStorage.getItem("token");
-  axiosClient.defaults.headers.common["Authorization"] = token
-    ? `Bearer ${token}`
-    : "";
+  // ===========================================
+  // 🔥 APPLY BASIC AUTH HEADER FOR ADMIN ROUTES
+  // ===========================================
+  axiosClient.defaults.headers.common["Authorization"] =
+    "Basic " +
+    btoa(
+      process.env.REACT_APP_ADMIN_USER +
+        ":" +
+        process.env.REACT_APP_ADMIN_PASS
+    );
 
   // ===============================
   // FETCH ALL ORDERS
   // ===============================
   const fetchOrders = useCallback(async () => {
     try {
-      const res = await axiosClient.get("/orders", {
+      const res = await axiosClient.get("/admin/orders", {
         params: { search, date: selectedDate },
       });
 
@@ -53,7 +58,7 @@ export default function AdminDashboard() {
   // ===============================
   const fetchMagazinesAndAgents = useCallback(async () => {
     try {
-      const res = await axiosClient.get("/orders");
+      const res = await axiosClient.get("/admin/orders");
       const data = Array.isArray(res.data) ? res.data : [];
 
       setMagazines([...new Set(data.map(o => o.magazinName).filter(Boolean))]);
@@ -75,7 +80,7 @@ export default function AdminDashboard() {
     if (!window.confirm("Delete this order?")) return;
 
     try {
-      await axiosClient.delete(`/orders/${id}`);
+      await axiosClient.delete(`/admin/orders/${id}`);
       fetchOrders();
     } catch (err) {
       console.error("Error deleting order:", err);
@@ -137,7 +142,6 @@ export default function AdminDashboard() {
             Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
 
           totalRevenue += totalUnits * Number(item.price || 0);
-
           products[item.name] = (products[item.name] || 0) + totalUnits;
         });
       });
@@ -340,7 +344,7 @@ function OrderRow({ order, index, deleteOrder }) {
         <td>{order.address}</td>
         <td>{order.responsiblePerson}</td>
         <td>{order.signature ? <img src={order.signature} alt="Signature" className="signature-img" /> : "N/A"}</td>
-        <td><button type="button" onClick={() => setOpen(!open)}>View</button></td>
+        <td><button type="button" onClick={() => setOpen(!open)}>View</button></td>  
         <td><button type="button" className="delete-btn" onClick={() => deleteOrder(order._id)}>🗑️</button></td>
       </tr>
 
