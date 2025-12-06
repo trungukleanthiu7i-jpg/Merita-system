@@ -1,5 +1,6 @@
+// src/pages/AddProduct.jsx  (sau unde se află în proiect)
 import React, { useState } from "react";
-import axios from "axios";
+import axiosClient from "../api/axiosClient";  // ← FOARTE IMPORTANT
 import { useNavigate } from "react-router-dom";
 import "../styles/AddProduct.scss";
 
@@ -13,7 +14,7 @@ const AddProduct = () => {
     category: "",
     unitsPerBox: "",
     image: "",
-    stoc: "in stoc", // default stock value
+    stoc: "in stoc",
   });
 
   const [loading, setLoading] = useState(false);
@@ -21,7 +22,6 @@ const AddProduct = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
 
-    // Ensure stoc values are normalized
     if (name === "stoc") {
       setForm({ ...form, [name]: value.trim().toLowerCase() });
     } else {
@@ -34,8 +34,8 @@ const AddProduct = () => {
     setLoading(true);
 
     try {
-      // Send the entire form including the chosen stock value
-      await axios.post("http://localhost:5000/api/products", form);
+      // ★ FOLOSEȘTE axiosClient, NU axios + localhost!!!
+      await axiosClient.post("/products", form);
 
       alert("Product added successfully!");
       navigate("/admin");
@@ -99,7 +99,6 @@ const AddProduct = () => {
           onChange={handleChange}
         />
 
-        {/* Stock status selection */}
         <label htmlFor="stoc">Stock Status:</label>
         <select
           name="stoc"
