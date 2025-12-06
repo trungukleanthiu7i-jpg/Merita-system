@@ -1,14 +1,8 @@
 // src/context/AuthContext.jsx
 import { createContext, useState, useContext } from "react";
-import axios from "axios";
+import axiosClient from "../api/axiosClient";  // ← folosim clientul global
 
 const AuthContext = createContext();
-
-// Axios client pointing to backend
-const axiosClient = axios.create({
-  baseURL: "http://localhost:5000/api", // backend-ul tău
-  withCredentials: true, // if using cookies/sessions in the future
-});
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -25,21 +19,19 @@ export function AuthProvider({ children }) {
     try {
       const res = await axiosClient.post("/auth/login", { username, password });
 
-      // Backend should return: { user: { id, username, role } }
       if (res.data && res.data.user) {
         setUser(res.data.user);
         setLoading(false);
         return true;
       } else {
-        setUser(null);
         setError("User not found or invalid response");
+        setUser(null);
         setLoading(false);
         return false;
       }
     } catch (err) {
       console.error("Login failed", err.response?.data || err);
 
-      // Handle specific status codes
       if (err.response?.status === 401) {
         setError("Username sau parola incorectă!");
       } else {
@@ -53,7 +45,7 @@ export function AuthProvider({ children }) {
   };
 
   // --------------------
-  // Logout function
+  // Logout
   // --------------------
   const logout = () => {
     setUser(null);
@@ -67,5 +59,5 @@ export function AuthProvider({ children }) {
   );
 }
 
-// Custom hook to use auth context
+// Custom hook
 export const useAuth = () => useContext(AuthContext);
