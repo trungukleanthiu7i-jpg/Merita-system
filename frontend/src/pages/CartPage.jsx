@@ -6,24 +6,12 @@ import { FaTrash } from "react-icons/fa";
 import "../styles/Cartpage.scss";
 
 export default function CartPage() {
-  const {
-    cart,
-    removeFromCart,
-    updateBoxes,
-    updatePrice,
-    clearCart,
-    totalBoxes,
-  } = useContext(CartContext);
-
+  const { cart, removeFromCart, updateBoxes, updatePrice, clearCart, totalBoxes } =
+    useContext(CartContext);
   const { user } = useAuth();
   const navigate = useNavigate();
-
-<<<<<<< HEAD
   const API_URL = process.env.REACT_APP_API_URL;
 
-=======
-  // Calculate total units for an item
->>>>>>> 11efd63 (Fix CartPage inputs and CartContext: boxes & price editable)
   const getItemUnits = (item) => {
     const unitsPerBox = Number(item.unitsPerBox || 1);
     const boxes = Number(item.boxes || 0);
@@ -31,20 +19,15 @@ export default function CartPage() {
     return quantity + boxes * unitsPerBox;
   };
 
-  // Calculate total price for an item
   const getItemTotal = (item) => {
-    const pricePerUnit = Number(item.customPrice ?? item.price ?? 0);
+    const pricePerUnit =
+      item.customPrice !== undefined ? Number(item.customPrice) : Number(item.price || 0);
     return getItemUnits(item) * pricePerUnit;
   };
 
-  // Overall totals
   const totalUnits = cart.reduce((sum, item) => sum + getItemUnits(item), 0);
   const totalOrder = cart.reduce((sum, item) => sum + getItemTotal(item), 0);
 
-<<<<<<< HEAD
-=======
-  // Redirect to agent info page
->>>>>>> 11efd63 (Fix CartPage inputs and CartContext: boxes & price editable)
   const handleProceedToAgentInfo = () => {
     if (cart.length === 0) return;
     navigate("/agent-info");
@@ -84,15 +67,17 @@ export default function CartPage() {
                     type="number"
                     step="0.01"
                     min="0"
-                    value={item.customPrice ?? item.price ?? 0}
+                    value={
+                      item.customPrice !== undefined
+                        ? item.customPrice
+                        : item.price || 0
+                    }
                     onChange={(e) => updatePrice(item._id, Number(e.target.value))}
                   />
                 </div>
               </div>
 
-              <p className="price">
-                Item Total: {getItemTotal(item).toFixed(2)} RON
-              </p>
+              <p className="price">Item Total: {getItemTotal(item).toFixed(2)} RON</p>
             </div>
 
             <FaTrash
@@ -123,14 +108,7 @@ export default function CartPage() {
               Șterge tot
             </button>
 
-<<<<<<< HEAD
             <button onClick={handleProceedToAgentInfo} className="submit-btn">
-=======
-            <button
-              onClick={handleProceedToAgentInfo}
-              className="submit-btn"
-            >
->>>>>>> 11efd63 (Fix CartPage inputs and CartContext: boxes & price editable)
               Trimis
             </button>
           </div>
