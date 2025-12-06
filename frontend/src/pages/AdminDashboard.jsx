@@ -5,18 +5,17 @@ import "../styles/AdminDashboard.scss";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
 
-  // Magazine Orders
   const [magazines, setMagazines] = useState([]);
   const [selectedMagazine, setSelectedMagazine] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [magazineProductStats, setMagazineProductStats] = useState({});
 
-  // Agent Orders
   const [agents, setAgents] = useState([]);
   const [selectedAgent, setSelectedAgent] = useState("");
   const [agentStartDate, setAgentStartDate] = useState("");
@@ -27,21 +26,18 @@ export default function AdminDashboard() {
     products: {},
   });
 
-  // Get token from localStorage (or wherever you store it)
-  const token = localStorage.getItem("token"); // adjust key if needed
-
-  const axiosAuthClient = axiosClient.create({
-    headers: {
-      Authorization: token ? `Bearer ${token}` : "",
-    },
-  });
+  // 🔥 ADD AUTH HEADER TO axiosClient
+  const token = localStorage.getItem("token");
+  axiosClient.defaults.headers.common["Authorization"] = token
+    ? `Bearer ${token}`
+    : "";
 
   // ===============================
   // FETCH ALL ORDERS
   // ===============================
   const fetchOrders = useCallback(async () => {
     try {
-      const res = await axiosAuthClient.get("/orders", {
+      const res = await axiosClient.get("/orders", {
         params: { search, date: selectedDate },
       });
 
@@ -57,7 +53,7 @@ export default function AdminDashboard() {
   // ===============================
   const fetchMagazinesAndAgents = useCallback(async () => {
     try {
-      const res = await axiosAuthClient.get("/orders");
+      const res = await axiosClient.get("/orders");
       const data = Array.isArray(res.data) ? res.data : [];
 
       setMagazines([...new Set(data.map(o => o.magazinName).filter(Boolean))]);
@@ -79,7 +75,7 @@ export default function AdminDashboard() {
     if (!window.confirm("Delete this order?")) return;
 
     try {
-      await axiosAuthClient.delete(`/orders/${id}`);
+      await axiosClient.delete(`/orders/${id}`);
       fetchOrders();
     } catch (err) {
       console.error("Error deleting order:", err);
@@ -96,12 +92,12 @@ export default function AdminDashboard() {
     if (!selectedMagazine) return alert("Please select a magazine");
 
     try {
-      const res = await axiosAuthClient.get("/admin/magazine-orders", {
+      const res = await axiosClient.get("/admin/magazine-orders", {
         params: { magazinName: selectedMagazine, startDate, endDate },
       });
 
-      const stats = {};
       const data = Array.isArray(res.data) ? res.data : [];
+      const stats = {};
 
       data.forEach(order => {
         order.items?.forEach(item => {
@@ -109,8 +105,7 @@ export default function AdminDashboard() {
             Number(item.quantity || 0) +
             Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
 
-          if (!stats[item.name]) stats[item.name] = 0;
-          stats[item.name] += totalUnits;
+          stats[item.name] = (stats[item.name] || 0) + totalUnits;
         });
       });
 
@@ -127,12 +122,11 @@ export default function AdminDashboard() {
     if (!selectedAgent) return alert("Please select an agent");
 
     try {
-      const res = await axiosAuthClient.get("/admin/agent-orders", {
+      const res = await axiosClient.get("/admin/agent-orders", {
         params: { agentName: selectedAgent, startDate: agentStartDate, endDate: agentEndDate },
       });
 
       const data = Array.isArray(res.data) ? res.data : [];
-
       let totalRevenue = 0;
       const products = {};
 
@@ -144,8 +138,7 @@ export default function AdminDashboard() {
 
           totalRevenue += totalUnits * Number(item.price || 0);
 
-          if (!products[item.name]) products[item.name] = 0;
-          products[item.name] += totalUnits;
+          products[item.name] = (products[item.name] || 0) + totalUnits;
         });
       });
 
