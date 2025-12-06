@@ -26,43 +26,42 @@ export default function AdminDashboard() {
     products: {},
   });
 
+  // 🔥 ADD AUTH HEADER TO axiosClient
   const token = localStorage.getItem("token");
+  axiosClient.defaults.headers.common["Authorization"] = token
+    ? `Bearer ${token}`
+    : "";
 
   // ===============================
   // FETCH ALL ORDERS
   // ===============================
   const fetchOrders = useCallback(async () => {
-    if (!token) return;
-
     try {
       const res = await axiosClient.get("/orders", {
         params: { search, date: selectedDate },
-        headers: { Authorization: `Bearer ${token}` },
       });
+
       setOrders(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Error fetching orders:", err);
       setOrders([]);
     }
-  }, [search, selectedDate, token]);
+  }, [search, selectedDate]);
 
   // ===============================
   // FETCH MAGAZINES + AGENTS
   // ===============================
   const fetchMagazinesAndAgents = useCallback(async () => {
-    if (!token) return;
-
     try {
-      const res = await axiosClient.get("/orders", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axiosClient.get("/orders");
       const data = Array.isArray(res.data) ? res.data : [];
-      setMagazines([...new Set(data.map((o) => o.magazinName).filter(Boolean))]);
-      setAgents([...new Set(data.map((o) => o.agentName).filter(Boolean))]);
+
+      setMagazines([...new Set(data.map(o => o.magazinName).filter(Boolean))]);
+      setAgents([...new Set(data.map(o => o.agentName).filter(Boolean))]);
     } catch (err) {
       console.error("Error fetching magazines/agents:", err);
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     fetchOrders();
@@ -74,12 +73,9 @@ export default function AdminDashboard() {
   // ===============================
   const deleteOrder = async (id) => {
     if (!window.confirm("Delete this order?")) return;
-    if (!token) return;
 
     try {
-      await axiosClient.delete(`/orders/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axiosClient.delete(`/orders/${id}`);
       fetchOrders();
     } catch (err) {
       console.error("Error deleting order:", err);
@@ -94,26 +90,21 @@ export default function AdminDashboard() {
   // ===============================
   const fetchMagazineOrders = async () => {
     if (!selectedMagazine) return alert("Please select a magazine");
-    if (!token) return alert("You are not logged in");
 
     try {
-      const res = await axiosClient.get("/orders", { // <-- changed endpoint to /orders
-        params: { 
-          magazinName: selectedMagazine, 
-          startDate, 
-          endDate 
-        },
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await axiosClient.get("/admin/magazine-orders", {
+        params: { magazinName: selectedMagazine, startDate, endDate },
       });
 
       const data = Array.isArray(res.data) ? res.data : [];
       const stats = {};
 
-      data.forEach((order) => {
-        order.items?.forEach((item) => {
+      data.forEach(order => {
+        order.items?.forEach(item => {
           const totalUnits =
             Number(item.quantity || 0) +
             Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+
           stats[item.name] = (stats[item.name] || 0) + totalUnits;
         });
       });
@@ -121,7 +112,6 @@ export default function AdminDashboard() {
       setMagazineProductStats(stats);
     } catch (err) {
       console.error("Error fetching magazine orders:", err);
-      setMagazineProductStats({});
     }
   };
 
@@ -130,29 +120,24 @@ export default function AdminDashboard() {
   // ===============================
   const fetchAgentOrders = async () => {
     if (!selectedAgent) return alert("Please select an agent");
-    if (!token) return alert("You are not logged in");
 
     try {
       const res = await axiosClient.get("/admin/agent-orders", {
-        params: {
-          agentName: selectedAgent,
-          startDate: agentStartDate,
-          endDate: agentEndDate,
-        },
-        headers: { Authorization: `Bearer ${token}` },
+        params: { agentName: selectedAgent, startDate: agentStartDate, endDate: agentEndDate },
       });
 
       const data = Array.isArray(res.data) ? res.data : [];
       let totalRevenue = 0;
       const products = {};
 
-      data.forEach((order) => {
-        order.items?.forEach((item) => {
+      data.forEach(order => {
+        order.items?.forEach(item => {
           const totalUnits =
             Number(item.quantity || 0) +
             Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
 
           totalRevenue += totalUnits * Number(item.price || 0);
+
           products[item.name] = (products[item.name] || 0) + totalUnits;
         });
       });
@@ -164,7 +149,6 @@ export default function AdminDashboard() {
       });
     } catch (err) {
       console.error("Error fetching agent orders:", err);
-      setAgentStats({ totalRevenue: 0, totalOrders: 0, products: {} });
     }
   };
 
@@ -177,12 +161,8 @@ export default function AdminDashboard() {
 
       {/* Admin Buttons */}
       <div className="admin-buttons">
-        <button type="button" className="stats-btn" onClick={handleViewStatistics}>
-          📊 View Statistics
-        </button>
-        <button type="button" className="add-product-btn" onClick={handleAddProduct}>
-          ➕ Add Product
-        </button>
+        <button type="button" className="stats-btn" onClick={handleViewStatistics}>📊 View Statistics</button>
+        <button type="button" className="add-product-btn" onClick={handleAddProduct}>➕ Add Product</button>
       </div>
 
       {/* Filters */}
@@ -225,9 +205,7 @@ export default function AdminDashboard() {
             ))
           ) : (
             <tr>
-              <td colSpan="11" style={{ textAlign: "center" }}>
-                No orders found
-              </td>
+              <td colSpan="11" style={{ textAlign: "center" }}>No orders found</td>
             </tr>
           )}
         </tbody>
@@ -241,9 +219,7 @@ export default function AdminDashboard() {
           <select value={selectedMagazine} onChange={(e) => setSelectedMagazine(e.target.value)}>
             <option value="">-- Select Magazine --</option>
             {magazines.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
+              <option key={m} value={m}>{m}</option>
             ))}
           </select>
         </label>
@@ -258,9 +234,7 @@ export default function AdminDashboard() {
           <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
         </label>
 
-        <button type="button" onClick={fetchMagazineOrders}>
-          Show Orders
-        </button>
+        <button type="button" onClick={fetchMagazineOrders}>Show Orders</button>
       </div>
 
       <table className="magazine-stats-table">
@@ -272,11 +246,7 @@ export default function AdminDashboard() {
         </thead>
         <tbody>
           {Object.keys(magazineProductStats).length === 0 ? (
-            <tr>
-              <td colSpan="2" style={{ textAlign: "center" }}>
-                No data
-              </td>
-            </tr>
+            <tr><td colSpan="2" style={{ textAlign: "center" }}>No data</td></tr>
           ) : (
             Object.entries(magazineProductStats).map(([name, qty]) => (
               <tr key={name}>
@@ -296,9 +266,7 @@ export default function AdminDashboard() {
           <select value={selectedAgent} onChange={(e) => setSelectedAgent(e.target.value)}>
             <option value="">-- Select Agent --</option>
             {agents.map((a) => (
-              <option key={a} value={a}>
-                {a}
-              </option>
+              <option key={a} value={a}>{a}</option>
             ))}
           </select>
         </label>
@@ -313,9 +281,7 @@ export default function AdminDashboard() {
           <input type="date" value={agentEndDate} onChange={(e) => setAgentEndDate(e.target.value)} />
         </label>
 
-        <button type="button" onClick={fetchAgentOrders}>
-          Show Orders
-        </button>
+        <button type="button" onClick={fetchAgentOrders}>Show Orders</button>
       </div>
 
       <div className="agent-stats-section">
@@ -331,11 +297,7 @@ export default function AdminDashboard() {
           </thead>
           <tbody>
             {Object.keys(agentStats.products).length === 0 ? (
-              <tr>
-                <td colSpan="2" style={{ textAlign: "center" }}>
-                  No data
-                </td>
-              </tr>
+              <tr><td colSpan="2" style={{ textAlign: "center" }}>No data</td></tr>
             ) : (
               Object.entries(agentStats.products).map(([name, qty]) => (
                 <tr key={name}>
@@ -377,19 +339,9 @@ function OrderRow({ order, index, deleteOrder }) {
         <td>{order.cui}</td>
         <td>{order.address}</td>
         <td>{order.responsiblePerson}</td>
-        <td>
-          {order.signature ? <img src={order.signature} alt="Signature" className="signature-img" /> : "N/A"}
-        </td>
-        <td>
-          <button type="button" onClick={() => setOpen(!open)}>
-            View
-          </button>
-        </td>
-        <td>
-          <button type="button" className="delete-btn" onClick={() => deleteOrder(order._id)}>
-            🗑️
-          </button>
-        </td>
+        <td>{order.signature ? <img src={order.signature} alt="Signature" className="signature-img" /> : "N/A"}</td>
+        <td><button type="button" onClick={() => setOpen(!open)}>View</button></td>
+        <td><button type="button" className="delete-btn" onClick={() => deleteOrder(order._id)}>🗑️</button></td>
       </tr>
 
       {open && (
