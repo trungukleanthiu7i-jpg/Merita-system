@@ -309,6 +309,19 @@
       }
     }
   }
+
+  /* ================================
+     New: Display Total Units + Total Boxes
+  ================================== */
+  .magazine-stats-table td,
+  .agent-stats-section table td {
+    &:after {
+      content: attr(data-total-boxes) " boxes";
+      display: block;
+      font-size: 13px;
+      color: #555;
+    }
+  }
 }
 
 /* Admin Buttons Section */
