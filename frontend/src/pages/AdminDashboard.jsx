@@ -26,17 +26,6 @@ export default function AdminDashboard() {
     products: {},
   });
 
-  // ===========================================
-  // 🔥 APPLY BASIC AUTH HEADER FOR ADMIN ROUTES
-  // ===========================================
-  axiosClient.defaults.headers.common["Authorization"] =
-    "Basic " +
-    btoa(
-      process.env.REACT_APP_ADMIN_USER +
-        ":" +
-        process.env.REACT_APP_ADMIN_PASS
-    );
-
   // ===============================
   // FETCH ALL ORDERS
   // ===============================
@@ -45,7 +34,6 @@ export default function AdminDashboard() {
       const res = await axiosClient.get("/admin/orders", {
         params: { search, date: selectedDate },
       });
-
       setOrders(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Error fetching orders:", err);
@@ -60,7 +48,6 @@ export default function AdminDashboard() {
     try {
       const res = await axiosClient.get("/admin/orders");
       const data = Array.isArray(res.data) ? res.data : [];
-
       setMagazines([...new Set(data.map(o => o.magazinName).filter(Boolean))]);
       setAgents([...new Set(data.map(o => o.agentName).filter(Boolean))]);
     } catch (err) {
@@ -87,6 +74,9 @@ export default function AdminDashboard() {
     }
   };
 
+  // ===============================
+  // NAVIGATION
+  // ===============================
   const handleViewStatistics = () => navigate("/admin/stats");
   const handleAddProduct = () => navigate("/admin/add-product");
 
@@ -100,7 +90,6 @@ export default function AdminDashboard() {
       const res = await axiosClient.get("/admin/magazine-orders", {
         params: { magazinName: selectedMagazine, startDate, endDate },
       });
-
       const data = Array.isArray(res.data) ? res.data : [];
       const stats = {};
 
@@ -133,7 +122,6 @@ export default function AdminDashboard() {
       const res = await axiosClient.get("/admin/agent-orders", {
         params: { agentName: selectedAgent, startDate: agentStartDate, endDate: agentEndDate },
       });
-
       const data = Array.isArray(res.data) ? res.data : [];
       let totalRevenue = 0;
       const products = {};
@@ -163,20 +151,15 @@ export default function AdminDashboard() {
     }
   };
 
-  // =====================================
-  // JSX START
-  // =====================================
   return (
     <div className="admin-dashboard">
       <h1>Admin Dashboard</h1>
 
-      {/* Admin Buttons */}
       <div className="admin-buttons">
         <button type="button" className="stats-btn" onClick={handleViewStatistics}>📊 View Statistics</button>
         <button type="button" className="add-product-btn" onClick={handleAddProduct}>➕ Add Product</button>
       </div>
 
-      {/* Filters */}
       <div className="filters">
         <input
           type="text"
@@ -191,7 +174,6 @@ export default function AdminDashboard() {
         />
       </div>
 
-      {/* Orders Table */}
       <h2>All Orders</h2>
       <table>
         <thead>
@@ -222,29 +204,24 @@ export default function AdminDashboard() {
         </tbody>
       </table>
 
-      {/* Magazine Orders Section */}
+      {/* Magazine Section */}
       <h2 className="magazine-title">Magazine Orders</h2>
       <div className="magazine-filters">
         <label>
           Magazine:
           <select value={selectedMagazine} onChange={(e) => setSelectedMagazine(e.target.value)}>
             <option value="">-- Select Magazine --</option>
-            {magazines.map((m) => (
-              <option key={m} value={m}>{m}</option>
-            ))}
+            {magazines.map((m) => <option key={m} value={m}>{m}</option>)}
           </select>
         </label>
-
         <label>
           Start:
           <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
         </label>
-
         <label>
           End:
           <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
         </label>
-
         <button type="button" onClick={fetchMagazineOrders}>Show Orders</button>
       </div>
 
@@ -278,29 +255,23 @@ export default function AdminDashboard() {
           Agent:
           <select value={selectedAgent} onChange={(e) => setSelectedAgent(e.target.value)}>
             <option value="">-- Select Agent --</option>
-            {agents.map((a) => (
-              <option key={a} value={a}>{a}</option>
-            ))}
+            {agents.map((a) => <option key={a} value={a}>{a}</option>)}
           </select>
         </label>
-
         <label>
           Start:
           <input type="date" value={agentStartDate} onChange={(e) => setAgentStartDate(e.target.value)} />
         </label>
-
         <label>
           End:
           <input type="date" value={agentEndDate} onChange={(e) => setAgentEndDate(e.target.value)} />
         </label>
-
         <button type="button" onClick={fetchAgentOrders}>Show Orders</button>
       </div>
 
       <div className="agent-stats-section">
         <p>Total Orders: {agentStats.totalOrders}</p>
         <p>Total Revenue: {agentStats.totalRevenue.toFixed(2)} RON</p>
-
         <table className="magazine-stats-table">
           <thead>
             <tr>
