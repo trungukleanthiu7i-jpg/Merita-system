@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, BrowserRouter } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import Header from "./components/Header";
 import Login from "./components/Login";
@@ -17,7 +17,7 @@ export default function App() {
   if (!user) return <Login />;
 
   return (
-    <>
+    <BrowserRouter>
       <Header />
       <Routes>
         {user.role === "admin" ? (
@@ -43,6 +43,6 @@ export default function App() {
           </>
         )}
       </Routes>
-    </>
+    </BrowserRouter>
   );
 }
