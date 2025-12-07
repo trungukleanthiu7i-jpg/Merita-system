@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; // <-- import this
+import { useNavigate } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
 import "../styles/AdminStats.scss";
 
 export default function AdminStats() {
-  const navigate = useNavigate(); // <-- use React Router
+  const navigate = useNavigate();
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,10 +21,7 @@ export default function AdminStats() {
     const fetchOrders = async () => {
       try {
         const res = await axiosClient.get("/admin/orders");
-        let data = [];
-        if (Array.isArray(res.data)) data = res.data;
-        else if (res.data.orders && Array.isArray(res.data.orders)) data = res.data.orders;
-
+        let data = Array.isArray(res.data) ? res.data : res.data.orders || [];
         setOrders(data);
         setLoading(false);
       } catch (err) {
@@ -32,7 +29,6 @@ export default function AdminStats() {
         setLoading(false);
       }
     };
-
     fetchOrders();
   }, []);
 
@@ -54,8 +50,7 @@ export default function AdminStats() {
     filteredOrders.forEach(order => {
       (order.items || []).forEach(item => {
         const boxes = Number(item.boxes || 0);
-        if (!productCount[item.name]) productCount[item.name] = 0;
-        productCount[item.name] += boxes;
+        productCount[item.name] = (productCount[item.name] || 0) + boxes;
       });
     });
 
@@ -71,10 +66,8 @@ export default function AdminStats() {
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(now.getMonth() - 1);
 
-    let boxesCurrentWeek = 0;
-    let boxesPreviousWeek = 0;
-    let revenueCurrentMonth = 0;
-    let revenuePreviousMonth = 0;
+    let boxesCurrentWeek = 0, boxesPreviousWeek = 0;
+    let revenueCurrentMonth = 0, revenuePreviousMonth = 0;
     const productChangeMap = {};
 
     filteredOrders.forEach(order => {
@@ -141,12 +134,12 @@ export default function AdminStats() {
 
   return (
     <div className="admin-stats">
-      {/* Back arrow using React Router navigation */}
+      {/* Client-side back navigation */}
       <div
         className="back-arrow"
         role="button"
         tabIndex={0}
-        onClick={() => navigate("/admin")} // <-- navigate client-side
+        onClick={() => navigate("/admin")}
         onKeyPress={(e) => { if (e.key === "Enter") navigate("/admin"); }}
         aria-label="Back to admin dashboard"
       >
@@ -158,11 +151,11 @@ export default function AdminStats() {
       <div className="date-filters">
         <label>
           From:
-          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
         </label>
         <label>
           To:
-          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
         </label>
       </div>
 
