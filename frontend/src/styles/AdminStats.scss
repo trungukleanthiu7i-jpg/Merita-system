@@ -11,6 +11,40 @@
     color: #007bff;
   }
 
+  /* ==========================
+     Date Range Filters
+  ========================== */
+  .date-filters {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+
+    label {
+      display: flex;
+      flex-direction: column;
+      font-weight: 600;
+      font-size: 16px;
+      color: #333;
+
+      input {
+        margin-top: 5px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+        transition: 0.2s ease;
+
+        &:focus {
+          outline: none;
+          border-color: #007bff;
+          box-shadow: 0 0 6px rgba(0, 123, 255, 0.4);
+        }
+      }
+    }
+  }
+
   .statistics-section {
     width: 100%;
     display: flex;
@@ -71,6 +105,12 @@
           color: #007bff;
         }
 
+        p {
+          font-size: 18px;
+          font-weight: 600;
+          text-align: center;
+        }
+
         ul {
           list-style: none;
           padding: 0;
@@ -97,6 +137,9 @@
     }
   }
 
+  /* ==========================
+     Responsive
+  ========================== */
   @media (max-width: 1024px) {
     .statistics-section {
       .main-stats {
@@ -105,6 +148,10 @@
 
       .product-stats {
         gap: 25px;
+      }
+
+      .date-filters {
+        gap: 15px;
       }
     }
   }
@@ -127,6 +174,16 @@
 
         .stat-box {
           max-width: 90%;
+        }
+      }
+
+      .date-filters {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+
+        label {
+          width: 90%;
         }
       }
     }
