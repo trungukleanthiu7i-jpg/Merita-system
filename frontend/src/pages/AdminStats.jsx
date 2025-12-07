@@ -146,13 +146,7 @@ export default function AdminStats() {
   // BACK BUTTON HANDLER
   // ================================
   const handleBack = () => {
-    // If browser history exists, go back
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      // Otherwise go to /admin
-      navigate("/admin");
-    }
+    navigate(-1); // Always go to the previous page
   };
 
   return (
@@ -163,9 +157,9 @@ export default function AdminStats() {
         tabIndex={0}
         onClick={handleBack}
         onKeyPress={(e) => { if (e.key === "Enter") handleBack(); }}
-        aria-label="Back to admin dashboard"
+        aria-label="Back to previous page"
       >
-        ← Back to Dashboard
+        ← Back
       </div>
 
       <h1>Admin Statistics</h1>
