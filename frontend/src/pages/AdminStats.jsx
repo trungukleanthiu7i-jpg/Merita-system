@@ -146,7 +146,7 @@ export default function AdminStats() {
   // BACK BUTTON HANDLER
   // ================================
   const handleBack = () => {
-    navigate("/admin"); // Always go back to admin dashboard
+    navigate("/admin"); // <-- Explicit path ensures AdminDashboard renders
   };
 
   return (
