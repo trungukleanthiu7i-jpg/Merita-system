@@ -23,22 +23,13 @@ export default function App() {
         {user.role === "admin" ? (
           <>
             {/* Admin Dashboard */}
-            <Route
-              path="/admin"
-              element={<AdminDashboard key="admin-dashboard" />}
-            />
+            <Route path="/admin" element={<AdminDashboard />} />
 
             {/* Admin Statistics */}
-            <Route
-              path="/admin/stats"
-              element={<AdminStats key="admin-stats" />}
-            />
+            <Route path="/admin/stats" element={<AdminStats />} />
 
             {/* Add Product */}
-            <Route
-              path="/admin/add-product"
-              element={<AddProduct key="admin-add-product" />}
-            />
+            <Route path="/admin/add-product" element={<AddProduct />} />
 
             {/* Unknown admin route */}
             <Route path="*" element={<Navigate to="/admin" replace />} />
