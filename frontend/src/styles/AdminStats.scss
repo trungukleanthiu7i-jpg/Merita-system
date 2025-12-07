@@ -3,6 +3,29 @@
   background: #f0f2f7;
   min-height: 100vh;
 
+  /* ==========================
+     Back Arrow
+  ========================== */
+  .back-arrow {
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    width: fit-content;
+    margin-bottom: 20px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    color: #007bff;
+    transition: 0.25s ease;
+
+    &:hover {
+      transform: translateX(-6px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.22);
+      background: #e6f0ff;
+    }
+  }
+
   h1 {
     text-align: center;
     margin-bottom: 30px;
