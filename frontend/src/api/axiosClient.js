@@ -7,21 +7,26 @@ const axiosClient = axios.create({
   baseURL: `${API_URL}/api`,
 });
 
-// Attach auth headers to every request
+// Interceptor for request
 axiosClient.interceptors.request.use(
   (config) => {
-    // JWT token auth (for normal users)
+    // JWT token (normal users)
     const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // Admin Basic Auth (for admin routes)
+    // Admin routes Basic Auth
     if (config.url?.startsWith("/admin")) {
-      const adminUser = process.env.REACT_APP_ADMIN_USER || "";
-      const adminPass = process.env.REACT_APP_ADMIN_PASS || "";
-      const basicAuth = btoa(`${adminUser}:${adminPass}`);
-      config.headers.Authorization = `Basic ${basicAuth}`;
+      const adminUser = process.env.REACT_APP_ADMIN_USER;
+      const adminPass = process.env.REACT_APP_ADMIN_PASS;
+
+      if (!adminUser || !adminPass) {
+        console.error("Missing REACT_APP_ADMIN_USER or REACT_APP_ADMIN_PASS!");
+      } else {
+        const basicAuth = btoa(`${adminUser}:${adminPass}`);
+        config.headers.Authorization = `Basic ${basicAuth}`;
+      }
     }
 
     return config;
@@ -29,7 +34,7 @@ axiosClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Redirect to login on 401
+// Interceptor for response
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
