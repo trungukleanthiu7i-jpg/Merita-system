@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
 import "../styles/AdminStats.scss";
 
 export default function AdminStats() {
+  const navigate = useNavigate();
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [productStats, setProductStats] = useState({ mostSold: [], leastSold: [] });
@@ -41,11 +44,10 @@ export default function AdminStats() {
     return true;
   });
 
-  // Compute product stats and trends whenever filtered orders change
+  // Compute stats when filtered orders change
   useEffect(() => {
     if (!filteredOrders.length) return;
 
-    // Product stats
     const productCount = {};
     filteredOrders.forEach(order => {
       (order.items || []).forEach(item => {
@@ -61,7 +63,7 @@ export default function AdminStats() {
       leastSold: sortedProducts.slice(-5).reverse(),
     });
 
-    // Comparison & trends (week-over-week and month-over-month)
+    // trends
     const now = new Date();
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(now.getDate() - 7);
@@ -83,15 +85,12 @@ export default function AdminStats() {
         const totalUnits = quantity + boxes * unitsPerBox;
         const revenue = totalUnits * Number(item.price || 0);
 
-        // Weekly boxes
         if (orderDate >= oneWeekAgo) boxesCurrentWeek += boxes;
         else boxesPreviousWeek += boxes;
 
-        // Monthly revenue
         if (orderDate >= oneMonthAgo) revenueCurrentMonth += revenue;
         else revenuePreviousMonth += revenue;
 
-        // Product trending
         if (!productChangeMap[item.name]) productChangeMap[item.name] = { current: 0, previous: 0 };
         if (orderDate >= oneWeekAgo) productChangeMap[item.name].current += boxes;
         else productChangeMap[item.name].previous += boxes;
@@ -101,6 +100,7 @@ export default function AdminStats() {
     const boxesChange = boxesPreviousWeek
       ? (((boxesCurrentWeek - boxesPreviousWeek) / boxesPreviousWeek) * 100).toFixed(1)
       : 0;
+
     const revenueChange = revenuePreviousMonth
       ? (((revenueCurrentMonth - revenuePreviousMonth) / revenuePreviousMonth) * 100).toFixed(1)
       : 0;
@@ -142,9 +142,15 @@ export default function AdminStats() {
 
   return (
     <div className="admin-stats">
+
+      {/* Back Arrow */}
+      <div className="back-arrow" onClick={() => navigate("/admindashboard")}>
+        ← Back
+      </div>
+
       <h1>Admin Statistics</h1>
 
-      {/* Date Range Filter */}
+      {/* Date Filters */}
       <div className="date-filters">
         <label>
           From:
@@ -158,16 +164,18 @@ export default function AdminStats() {
 
       <div className="statistics-section">
         <div className="main-stats">
-          <p>
-            Total Orders: {totalOrders}
-          </p>
+          <p>Total Orders: {totalOrders}</p>
           <p>
             Total Boxes Sold: {totalBoxesSold}{" "}
-            {trendStats.boxesChange > 0 ? `(+${trendStats.boxesChange}% vs last week)` : `(${trendStats.boxesChange}% vs last week)`}
+            {trendStats.boxesChange > 0
+              ? `(+${trendStats.boxesChange}% vs last week)`
+              : `(${trendStats.boxesChange}% vs last week)`}
           </p>
           <p>
             Total Revenue: {totalRevenue.toFixed(2)} RON{" "}
-            {trendStats.revenueChange > 0 ? `(+${trendStats.revenueChange}% vs last month)` : `(${trendStats.revenueChange}% vs last month)`}
+            {trendStats.revenueChange > 0
+              ? `(+${trendStats.revenueChange}% vs last month)`
+              : `(${trendStats.revenueChange}% vs last month)`}
           </p>
         </div>
 
@@ -181,6 +189,7 @@ export default function AdminStats() {
               ))}
             </ul>
           </div>
+
           <div className="stat-box">
             <h4>Least Sold Products</h4>
             <ul>
