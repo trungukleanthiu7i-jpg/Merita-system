@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; 
 import axiosClient from "../api/axiosClient";
 import "../styles/AdminStats.scss";
 
 export default function AdminStats() {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // React Router navigation
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,21 +17,23 @@ export default function AdminStats() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
+  // Fetch orders once
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         const res = await axiosClient.get("/admin/orders");
-        let data = Array.isArray(res.data) ? res.data : res.data.orders || [];
+        const data = Array.isArray(res.data) ? res.data : res.data.orders || [];
         setOrders(data);
-        setLoading(false);
       } catch (err) {
         console.error("Error fetching orders:", err);
+      } finally {
         setLoading(false);
       }
     };
     fetchOrders();
   }, []);
 
+  // Filter orders by date
   const filteredOrders = orders.filter(order => {
     const orderDate = new Date(order.createdAt);
     if (startDate && orderDate < new Date(startDate)) return false;
@@ -39,6 +41,7 @@ export default function AdminStats() {
     return true;
   });
 
+  // Compute stats
   useEffect(() => {
     if (!filteredOrders.length) {
       setProductStats({ mostSold: [], leastSold: [] });
@@ -134,13 +137,13 @@ export default function AdminStats() {
 
   return (
     <div className="admin-stats">
-      {/* Client-side back navigation */}
+      {/* Back arrow uses browser history instead of hard URL */}
       <div
         className="back-arrow"
         role="button"
         tabIndex={0}
-        onClick={() => navigate("/admin")}
-        onKeyPress={(e) => { if (e.key === "Enter") navigate("/admin"); }}
+        onClick={() => navigate(-1)} // <-- go back one step
+        onKeyPress={(e) => { if (e.key === "Enter") navigate(-1); }}
         aria-label="Back to admin dashboard"
       >
         ← Back to Dashboard
