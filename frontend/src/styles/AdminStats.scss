@@ -29,7 +29,7 @@
         font-weight: 600;
         background: #007bff;
         color: white;
-        padding: 15px 25px; /* slightly bigger */
+        padding: 15px 25px;
         border-radius: 10px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -51,21 +51,21 @@
       .stat-box {
         background: linear-gradient(145deg, #ffffff, #f0f4ff);
         border-radius: 12px;
-        padding: 40px 30px; /* bigger padding */
+        padding: 40px 30px;
         box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-        min-width: 320px;  /* bigger width */
-        max-width: 400px;  /* bigger width */
+        min-width: 320px;
+        max-width: 400px;
         flex: 1;
         transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
 
         &:hover {
-          transform: scale(1.08); /* slightly bigger zoom on hover */
+          transform: scale(1.08);
           box-shadow: 0 10px 25px rgba(0,0,0,0.2);
           background: linear-gradient(145deg, #e6f0ff, #ffffff);
         }
 
         h4 {
-          font-size: 26px; /* slightly bigger title */
+          font-size: 26px;
           margin-bottom: 20px;
           text-align: center;
           color: #007bff;
@@ -74,11 +74,11 @@
         ul {
           list-style: none;
           padding: 0;
-          max-height: 280px; /* allow more items visible */
+          max-height: 280px;
           overflow-y: auto;
 
           li {
-            font-size: 17px; /* slightly bigger text */
+            font-size: 17px;
             padding: 8px 0;
             border-bottom: 1px solid #dde4f0;
             transition: background 0.2s ease;
