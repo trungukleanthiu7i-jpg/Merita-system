@@ -4,7 +4,7 @@ import axiosClient from "../api/axiosClient";
 import "../styles/AdminStats.scss";
 
 export default function AdminStats() {
-  const navigate = useNavigate(); // React Router navigation
+  const navigate = useNavigate();
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +17,9 @@ export default function AdminStats() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // Fetch orders once
+  // ================================
+  // FETCH ORDERS
+  // ================================
   useEffect(() => {
     const fetchOrders = async () => {
       try {
@@ -33,7 +35,9 @@ export default function AdminStats() {
     fetchOrders();
   }, []);
 
-  // Filter orders by date
+  // ================================
+  // FILTER ORDERS BY DATE
+  // ================================
   const filteredOrders = orders.filter(order => {
     const orderDate = new Date(order.createdAt);
     if (startDate && orderDate < new Date(startDate)) return false;
@@ -41,7 +45,9 @@ export default function AdminStats() {
     return true;
   });
 
-  // Compute stats
+  // ================================
+  // COMPUTE STATISTICS
+  // ================================
   useEffect(() => {
     if (!filteredOrders.length) {
       setProductStats({ mostSold: [], leastSold: [] });
@@ -63,6 +69,7 @@ export default function AdminStats() {
       leastSold: sortedProducts.slice(-5).reverse(),
     });
 
+    // Trending products & percentage changes
     const now = new Date();
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(now.getDate() - 7);
@@ -135,15 +142,21 @@ export default function AdminStats() {
     0
   );
 
+  // ================================
+  // BACK BUTTON HANDLER
+  // ================================
+  const handleBack = () => {
+    navigate("/admin"); // Always go back to admin dashboard
+  };
+
   return (
     <div className="admin-stats">
-      {/* Back arrow uses browser history instead of hard URL */}
       <div
         className="back-arrow"
         role="button"
         tabIndex={0}
-        onClick={() => navigate(-1)} // <-- go back one step
-        onKeyPress={(e) => { if (e.key === "Enter") navigate(-1); }}
+        onClick={handleBack}
+        onKeyPress={(e) => { if (e.key === "Enter") handleBack(); }}
         aria-label="Back to admin dashboard"
       >
         ← Back to Dashboard
@@ -167,11 +180,15 @@ export default function AdminStats() {
           <p>Total Orders: {totalOrders}</p>
           <p>
             Total Boxes Sold: {totalBoxesSold}{" "}
-            {trendStats.boxesChange > 0 ? `(+${trendStats.boxesChange}% vs last week)` : `(${trendStats.boxesChange}% vs last week)`}
+            {trendStats.boxesChange >= 0
+              ? `(+${trendStats.boxesChange}% vs last week)`
+              : `(${trendStats.boxesChange}% vs last week)`}
           </p>
           <p>
             Total Revenue: {totalRevenue.toFixed(2)} RON{" "}
-            {trendStats.revenueChange > 0 ? `(+${trendStats.revenueChange}% vs last month)` : `(${trendStats.revenueChange}% vs last month)`}
+            {trendStats.revenueChange >= 0
+              ? `(+${trendStats.revenueChange}% vs last month)`
+              : `(${trendStats.revenueChange}% vs last month)`}
           </p>
         </div>
 
