@@ -44,10 +44,16 @@ export default function AdminStats() {
     return true;
   });
 
-  // Compute stats when filtered orders change
+  // Compute product stats and trends whenever filtered orders change
   useEffect(() => {
-    if (!filteredOrders.length) return;
+    if (!filteredOrders.length) {
+      // reset stats when no filtered orders
+      setProductStats({ mostSold: [], leastSold: [] });
+      setTrendStats({ boxesChange: 0, revenueChange: 0, trendingProducts: [] });
+      return;
+    }
 
+    // Product stats
     const productCount = {};
     filteredOrders.forEach(order => {
       (order.items || []).forEach(item => {
@@ -63,7 +69,7 @@ export default function AdminStats() {
       leastSold: sortedProducts.slice(-5).reverse(),
     });
 
-    // trends
+    // Comparison & trends (week-over-week and month-over-month)
     const now = new Date();
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(now.getDate() - 7);
@@ -85,12 +91,15 @@ export default function AdminStats() {
         const totalUnits = quantity + boxes * unitsPerBox;
         const revenue = totalUnits * Number(item.price || 0);
 
+        // Weekly boxes
         if (orderDate >= oneWeekAgo) boxesCurrentWeek += boxes;
         else boxesPreviousWeek += boxes;
 
+        // Monthly revenue
         if (orderDate >= oneMonthAgo) revenueCurrentMonth += revenue;
         else revenuePreviousMonth += revenue;
 
+        // Product trending
         if (!productChangeMap[item.name]) productChangeMap[item.name] = { current: 0, previous: 0 };
         if (orderDate >= oneWeekAgo) productChangeMap[item.name].current += boxes;
         else productChangeMap[item.name].previous += boxes;
@@ -98,19 +107,18 @@ export default function AdminStats() {
     });
 
     const boxesChange = boxesPreviousWeek
-      ? (((boxesCurrentWeek - boxesPreviousWeek) / boxesPreviousWeek) * 100).toFixed(1)
+      ? Number((((boxesCurrentWeek - boxesPreviousWeek) / boxesPreviousWeek) * 100).toFixed(1))
       : 0;
-
     const revenueChange = revenuePreviousMonth
-      ? (((revenueCurrentMonth - revenuePreviousMonth) / revenuePreviousMonth) * 100).toFixed(1)
+      ? Number((((revenueCurrentMonth - revenuePreviousMonth) / revenuePreviousMonth) * 100).toFixed(1))
       : 0;
 
     const trendingProducts = Object.entries(productChangeMap)
       .map(([name, data]) => {
         const change = data.previous
-          ? (((data.current - data.previous) / data.previous) * 100).toFixed(1)
+          ? Number((((data.current - data.previous) / data.previous) * 100).toFixed(1))
           : 100;
-        return { name, change: Number(change), direction: change >= 0 ? "up" : "down" };
+        return { name, change, direction: change >= 0 ? "up" : "down" };
       })
       .sort((a, b) => Math.abs(b.change) - Math.abs(a.change))
       .slice(0, 5);
@@ -142,15 +150,21 @@ export default function AdminStats() {
 
   return (
     <div className="admin-stats">
-
-      {/* Back Arrow */}
-      <div className="back-arrow" onClick={() => navigate("/admindashboard")}>
-        ← Back
+      {/* Back arrow: uses the .back-arrow style from your SCSS */}
+      <div
+        className="back-arrow"
+        role="button"
+        tabIndex={0}
+        onClick={() => navigate("/admin")}
+        onKeyPress={(e) => { if (e.key === "Enter") navigate("/admin"); }}
+        aria-label="Back to admin dashboard"
+      >
+        ← Back to Dashboard
       </div>
 
       <h1>Admin Statistics</h1>
 
-      {/* Date Filters */}
+      {/* Date Range Filter */}
       <div className="date-filters">
         <label>
           From:
@@ -164,18 +178,16 @@ export default function AdminStats() {
 
       <div className="statistics-section">
         <div className="main-stats">
-          <p>Total Orders: {totalOrders}</p>
+          <p>
+            Total Orders: {totalOrders}
+          </p>
           <p>
             Total Boxes Sold: {totalBoxesSold}{" "}
-            {trendStats.boxesChange > 0
-              ? `(+${trendStats.boxesChange}% vs last week)`
-              : `(${trendStats.boxesChange}% vs last week)`}
+            {trendStats.boxesChange > 0 ? `(+${trendStats.boxesChange}% vs last week)` : `(${trendStats.boxesChange}% vs last week)`}
           </p>
           <p>
             Total Revenue: {totalRevenue.toFixed(2)} RON{" "}
-            {trendStats.revenueChange > 0
-              ? `(+${trendStats.revenueChange}% vs last month)`
-              : `(${trendStats.revenueChange}% vs last month)`}
+            {trendStats.revenueChange > 0 ? `(+${trendStats.revenueChange}% vs last month)` : `(${trendStats.revenueChange}% vs last month)`}
           </p>
         </div>
 
@@ -189,7 +201,6 @@ export default function AdminStats() {
               ))}
             </ul>
           </div>
-
           <div className="stat-box">
             <h4>Least Sold Products</h4>
             <ul>
