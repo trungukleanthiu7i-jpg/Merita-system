@@ -65,7 +65,6 @@ export default function AdminDashboard() {
   // ===============================
   const deleteOrder = async (id) => {
     if (!window.confirm("Delete this order?")) return;
-
     try {
       await axiosClient.delete(`/admin/orders/${id}`);
       fetchOrders();
@@ -80,34 +79,26 @@ export default function AdminDashboard() {
   const handleViewStatistics = () => navigate("/admin/stats");
   const handleAddProduct = () => navigate("/admin/add-product");
 
-  const handleBackToDashboard = () => navigate("/admin"); // <-- Back arrow for stats page
-
   // ===============================
   // MAGAZINE FILTER SECTION
   // ===============================
   const fetchMagazineOrders = async () => {
     if (!selectedMagazine) return alert("Please select a magazine");
-
     try {
       const res = await axiosClient.get("/admin/magazine-orders", {
         params: { magazinName: selectedMagazine, startDate, endDate },
       });
       const data = Array.isArray(res.data) ? res.data : [];
       const stats = {};
-
       data.forEach(order => {
         order.items?.forEach(item => {
-          const totalUnits =
-            Number(item.quantity || 0) +
-            Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+          const totalUnits = Number(item.quantity || 0) + Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
           const totalBoxes = Number(item.boxes || 0);
-
           if (!stats[item.name]) stats[item.name] = { units: 0, boxes: 0 };
           stats[item.name].units += totalUnits;
           stats[item.name].boxes += totalBoxes;
         });
       });
-
       setMagazineProductStats(stats);
     } catch (err) {
       console.error("Error fetching magazine orders:", err);
@@ -119,7 +110,6 @@ export default function AdminDashboard() {
   // ===============================
   const fetchAgentOrders = async () => {
     if (!selectedAgent) return alert("Please select an agent");
-
     try {
       const res = await axiosClient.get("/admin/agent-orders", {
         params: { agentName: selectedAgent, startDate: agentStartDate, endDate: agentEndDate },
@@ -127,27 +117,17 @@ export default function AdminDashboard() {
       const data = Array.isArray(res.data) ? res.data : [];
       let totalRevenue = 0;
       const products = {};
-
       data.forEach(order => {
         order.items?.forEach(item => {
-          const totalUnits =
-            Number(item.quantity || 0) +
-            Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+          const totalUnits = Number(item.quantity || 0) + Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
           const totalBoxes = Number(item.boxes || 0);
-
           totalRevenue += totalUnits * Number(item.price || 0);
-
           if (!products[item.name]) products[item.name] = { units: 0, boxes: 0 };
           products[item.name].units += totalUnits;
           products[item.name].boxes += totalBoxes;
         });
       });
-
-      setAgentStats({
-        totalRevenue,
-        totalOrders: data.length,
-        products,
-      });
+      setAgentStats({ totalRevenue, totalOrders: data.length, products });
     } catch (err) {
       console.error("Error fetching agent orders:", err);
     }
@@ -311,9 +291,7 @@ function OrderRow({ order, index, deleteOrder }) {
 
   const total = Array.isArray(order.items)
     ? order.items.reduce((sum, item) => {
-        const units =
-          Number(item.quantity || 0) +
-          Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+        const units = Number(item.quantity || 0) + Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
         return sum + units * Number(item.price || 0);
       }, 0)
     : 0;
@@ -352,10 +330,7 @@ function OrderRow({ order, index, deleteOrder }) {
                 </thead>
                 <tbody>
                   {order.items.map((item) => {
-                    const totalUnits =
-                      Number(item.quantity || 0) +
-                      Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
-
+                    const totalUnits = Number(item.quantity || 0) + Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
                     return (
                       <tr key={item._id || item.name}>
                         <td>{item.name}</td>
