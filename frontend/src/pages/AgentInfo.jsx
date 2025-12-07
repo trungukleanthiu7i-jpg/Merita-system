@@ -19,6 +19,7 @@ export default function AgentInfo() {
 
   const sigCanvas = useRef(null);
 
+  // Show popup at top center
   const showPopup = (message, type) => {
     setPopup({ show: true, message, type });
     setTimeout(() => setPopup({ show: false, message: "", type: "" }), 3000);
@@ -162,7 +163,7 @@ export default function AgentInfo() {
       </div>
 
       {popup.show && (
-        <div className={`popup ${popup.type}`}>
+        <div className={`toast-message ${popup.type}`}>
           {popup.message}
         </div>
       )}
