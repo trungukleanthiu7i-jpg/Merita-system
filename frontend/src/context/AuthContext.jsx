@@ -1,13 +1,34 @@
 // src/context/AuthContext.jsx
-import { createContext, useState, useContext } from "react";
-import axiosClient from "../api/axiosClient";  // ← folosim clientul global
+import { createContext, useState, useContext, useEffect } from "react";
+import axiosClient from "../api/axiosClient";
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // --------------------
+  // Check if user is already logged in
+  // --------------------
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (token) {
+          axiosClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+          const res = await axiosClient.get("/auth/me"); // endpoint to get current user
+          setUser(res.data.user);
+        }
+      } catch (err) {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCurrentUser();
+  }, []);
 
   // --------------------
   // Login function
@@ -21,6 +42,13 @@ export function AuthProvider({ children }) {
 
       if (res.data && res.data.user) {
         setUser(res.data.user);
+
+        // If your API returns a token, store it
+        if (res.data.token) {
+          localStorage.setItem("token", res.data.token);
+          axiosClient.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
+        }
+
         setLoading(false);
         return true;
       } else {
@@ -45,11 +73,13 @@ export function AuthProvider({ children }) {
   };
 
   // --------------------
-  // Logout
+  // Logout function
   // --------------------
   const logout = () => {
     setUser(null);
     setError(null);
+    localStorage.removeItem("token");
+    axiosClient.defaults.headers.common["Authorization"] = "";
   };
 
   return (
