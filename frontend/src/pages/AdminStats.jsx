@@ -146,7 +146,13 @@ export default function AdminStats() {
   // BACK BUTTON HANDLER
   // ================================
   const handleBack = () => {
-    navigate(-1); // <-- go back in history
+    // If browser history exists, go back
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      // Otherwise go to /admin
+      navigate("/admin");
+    }
   };
 
   return (
