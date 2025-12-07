@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // <-- import this
 import axiosClient from "../api/axiosClient";
 import "../styles/AdminStats.scss";
 
 export default function AdminStats() {
+  const navigate = useNavigate(); // <-- use React Router
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [productStats, setProductStats] = useState({ mostSold: [], leastSold: [] });
@@ -33,7 +36,6 @@ export default function AdminStats() {
     fetchOrders();
   }, []);
 
-  // Filter orders by selected date range
   const filteredOrders = orders.filter(order => {
     const orderDate = new Date(order.createdAt);
     if (startDate && orderDate < new Date(startDate)) return false;
@@ -41,7 +43,6 @@ export default function AdminStats() {
     return true;
   });
 
-  // Compute product stats and trends whenever filtered orders change
   useEffect(() => {
     if (!filteredOrders.length) {
       setProductStats({ mostSold: [], leastSold: [] });
@@ -49,7 +50,6 @@ export default function AdminStats() {
       return;
     }
 
-    // Product stats
     const productCount = {};
     filteredOrders.forEach(order => {
       (order.items || []).forEach(item => {
@@ -65,7 +65,6 @@ export default function AdminStats() {
       leastSold: sortedProducts.slice(-5).reverse(),
     });
 
-    // Comparison & trends
     const now = new Date();
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(now.getDate() - 7);
@@ -142,15 +141,13 @@ export default function AdminStats() {
 
   return (
     <div className="admin-stats">
-      {/* Back arrow */}
+      {/* Back arrow using React Router navigation */}
       <div
         className="back-arrow"
         role="button"
         tabIndex={0}
-        onClick={() =>
-          window.location.replace("https://frontend-9ppa.onrender.com/admin")
-        }
-        onKeyPress={(e) => { if (e.key === "Enter") window.location.replace("https://frontend-9ppa.onrender.com/admin"); }}
+        onClick={() => navigate("/admin")} // <-- navigate client-side
+        onKeyPress={(e) => { if (e.key === "Enter") navigate("/admin"); }}
         aria-label="Back to admin dashboard"
       >
         ← Back to Dashboard
