@@ -4,7 +4,6 @@ import axiosClient from "../api/axiosClient";
 import SignatureCanvas from "react-signature-canvas";
 import "../styles/AgentInfo.scss";
 import { CartContext } from "../context/CartContext";
-import { toast } from "react-toastify";
 
 export default function AgentInfo() {
   const navigate = useNavigate();
@@ -15,8 +14,15 @@ export default function AgentInfo() {
   const [cui, setCui] = useState("");
   const [address, setAddress] = useState("");
   const [responsiblePerson, setResponsiblePerson] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [popup, setPopup] = useState({ show: false, message: "", type: "" });
 
   const sigCanvas = useRef(null);
+
+  const showPopup = (message, type) => {
+    setPopup({ show: true, message, type });
+    setTimeout(() => setPopup({ show: false, message: "", type: "" }), 3000);
+  };
 
   const sendOrder = async () => {
     if (
@@ -26,12 +32,12 @@ export default function AgentInfo() {
       !address.trim() ||
       !responsiblePerson.trim()
     ) {
-      toast.error("Please fill in all required fields.");
+      showPopup("Completează toate câmpurile obligatorii!", "error");
       return;
     }
 
     if (cart.length === 0) {
-      toast.error("Cart is empty!");
+      showPopup("Coșul este gol!", "error");
       return;
     }
 
@@ -39,27 +45,22 @@ export default function AgentInfo() {
     if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
       signatureData = sigCanvas.current.getCanvas().toDataURL("image/png");
     } else {
-      toast.error("Please provide a signature.");
+      showPopup("Semnătura este obligatorie!", "error");
       return;
     }
 
-    const items = cart.map((item) => {
-      if (!item._id && item.product?.id) {
-        item._id = item.product._id;
-      }
-      return {
-        _id: item._id,
-        name: item.name || item.product?.name || "Unnamed Product",
-        boxes: Number(item.boxes || 0),
-        quantity: Number(item.quantity || 0),
-        price: Number(item.customPrice ?? item.price ?? 0),
-        unitsPerBox: Number(item.unitsPerBox || 1),
-      };
-    });
+    const items = cart.map((item) => ({
+      _id: item._id || item.product?._id,
+      name: item.name || item.product?.name || "Produs fără nume",
+      boxes: Number(item.boxes || 0),
+      quantity: Number(item.quantity || 0),
+      price: Number(item.customPrice ?? item.price ?? 0),
+      unitsPerBox: Number(item.unitsPerBox || 1),
+    }));
 
     const invalidItem = items.find((i) => !i._id);
     if (invalidItem) {
-      toast.error(`Invalid product in cart: ${invalidItem.name}`);
+      showPopup(`Produs invalid în coș: ${invalidItem.name}`, "error");
       return;
     }
 
@@ -74,29 +75,29 @@ export default function AgentInfo() {
     };
 
     try {
-      // 4️⃣ Add token (VERY IMPORTANT)
+      setLoading(true);
       const token = localStorage.getItem("token");
       axiosClient.defaults.headers.common["Authorization"] = token
         ? `Bearer ${token}`
         : "";
 
-      // 5️⃣ Send order
       const response = await axiosClient.post("/orders/create", data);
 
-      toast.success(response.data?.message || "Order sent successfully!");
+      showPopup(response.data?.message || "Comanda a fost trimisă cu succes!", "success");
       clearCart();
       sigCanvas.current?.clear();
-
       setAgentName("");
       setMagazinName("");
       setCui("");
       setAddress("");
       setResponsiblePerson("");
 
-      navigate("/");
+      setTimeout(() => navigate("/"), 1500);
     } catch (err) {
       console.error("Error sending order:", err);
-      toast.error(err.response?.data?.message || "Error sending order.");
+      showPopup(err.response?.data?.message || "Trimiterea comenzii a eșuat!", "error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -104,18 +105,18 @@ export default function AgentInfo() {
 
   return (
     <div className="agent-info">
-      <h2>Complete Order Details</h2>
+      <h2>Completează detaliile comenzii</h2>
 
       <div className="form-container">
         <input
           type="text"
-          placeholder="Agent Name"
+          placeholder="Nume Agent"
           value={agentName}
           onChange={(e) => setAgentName(e.target.value)}
         />
         <input
           type="text"
-          placeholder="Magazin Name"
+          placeholder="Nume Magazin"
           value={magazinName}
           onChange={(e) => setMagazinName(e.target.value)}
         />
@@ -133,13 +134,13 @@ export default function AgentInfo() {
         />
         <input
           type="text"
-          placeholder="Responsible Person"
+          placeholder="Persoană responsabilă"
           value={responsiblePerson}
           onChange={(e) => setResponsiblePerson(e.target.value)}
         />
 
         <div className="signature-container">
-          <label>Signature:</label>
+          <label>Semnătură:</label>
           <SignatureCanvas
             ref={sigCanvas}
             penColor="black"
@@ -151,14 +152,20 @@ export default function AgentInfo() {
             }}
           />
           <button type="button" onClick={clearSignature}>
-            Clear Signature
+            Șterge Semnătura
           </button>
         </div>
 
-        <button className="submit-btn" onClick={sendOrder}>
-          Trimis
+        <button className="submit-btn" onClick={sendOrder} disabled={loading}>
+          {loading ? "Se trimite..." : "Trimis"}
         </button>
       </div>
+
+      {popup.show && (
+        <div className={`popup ${popup.type}`}>
+          {popup.message}
+        </div>
+      )}
     </div>
   );
 }
