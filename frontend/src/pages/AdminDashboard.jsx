@@ -80,6 +80,8 @@ export default function AdminDashboard() {
   const handleViewStatistics = () => navigate("/admin/stats");
   const handleAddProduct = () => navigate("/admin/add-product");
 
+  const handleBackToDashboard = () => navigate("/admin"); // <-- Back arrow for stats page
+
   // ===============================
   // MAGAZINE FILTER SECTION
   // ===============================
@@ -160,6 +162,7 @@ export default function AdminDashboard() {
         <button type="button" className="add-product-btn" onClick={handleAddProduct}>➕ Add Product</button>
       </div>
 
+      {/* Filters */}
       <div className="filters">
         <input
           type="text"
@@ -174,6 +177,7 @@ export default function AdminDashboard() {
         />
       </div>
 
+      {/* Orders Table */}
       <h2>All Orders</h2>
       <table>
         <thead>
