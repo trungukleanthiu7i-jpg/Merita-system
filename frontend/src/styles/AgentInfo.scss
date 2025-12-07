@@ -1,154 +1,173 @@
-$cyan: #00d4ff;
-$pink: #ff4fa3;
-$shadow: rgba(0, 0, 0, 0.12);
+import { useNavigate } from "react-router-dom";
+import { useState, useRef, useContext } from "react";
+import axiosClient from "../api/axiosClient";
+import SignatureCanvas from "react-signature-canvas";
+import "../styles/AgentInfo.scss";
+import { CartContext } from "../context/CartContext";
 
-@keyframes fadeInUp {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+export default function AgentInfo() {
+  const navigate = useNavigate();
+  const { clearCart, cart } = useContext(CartContext);
 
-.agent-info {
-  padding: 40px 15px;
-  min-height: 100vh;
-  background: #f9f9f9;
-  animation: fadeInUp 0.6s ease forwards;
+  const [agentName, setAgentName] = useState("");
+  const [magazinName, setMagazinName] = useState("");
+  const [cui, setCui] = useState("");
+  const [address, setAddress] = useState("");
+  const [responsiblePerson, setResponsiblePerson] = useState("");
 
-  h2 {
-    text-align: center;
-    font-size: 34px;
-    margin-bottom: 40px;
-    font-weight: 700;
-    color: #222;
+  const [popup, setPopup] = useState({ show: false, message: "", type: "" });
 
-    @media (max-width: 480px) {
-      font-size: 28px;
-      margin-bottom: 30px;
-    }
-  }
+  const sigCanvas = useRef(null);
 
-  .form-container {
-    max-width: 450px;
-    margin: 0 auto;
-    padding: 30px 20px;
-    background: #fff;
-    border-radius: 14px;
-    border: 1px solid #ededed;
-    box-shadow: 0 6px 18px $shadow;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    align-items: center;
+  const showPopup = (message, type = "success") => {
+    setPopup({ show: true, message, type });
+    setTimeout(() => setPopup({ show: false, message: "", type: "" }), 3000);
+  };
 
-    @media (max-width: 480px) {
-      padding: 25px 15px;
-    }
-  }
-
-  input {
-    width: 90%;
-    max-width: 400px;
-    padding: 12px;
-    font-size: 15px;
-    border-radius: 10px;
-    border: 1px solid #dcdcdc;
-    background: #fafafa;
-    transition: 0.25s ease;
-
-    &:focus {
-      border-color: $cyan;
-      box-shadow: 0 0 12px rgba(0, 212, 255, 0.3);
-      outline: none;
-      background: white;
+  const sendOrder = async () => {
+    if (
+      !agentName.trim() ||
+      !magazinName.trim() ||
+      !cui.trim() ||
+      !address.trim() ||
+      !responsiblePerson.trim()
+    ) {
+      showPopup("Vă rugăm completați toate câmpurile!", "error");
+      return;
     }
 
-    @media (max-width: 480px) {
-      width: 100%;
-      font-size: 14px;
-      padding: 10px;
-    }
-  }
-
-  .signature-container {
-    margin-top: 12px;
-    width: 90%;
-
-    label {
-      font-weight: 600;
-      display: block;
-      margin-bottom: 6px;
-      font-size: 14px;
-      color: #333;
-
-      @media (max-width: 480px) {
-        font-size: 13px;
-      }
+    if (cart.length === 0) {
+      showPopup("Coșul este gol!", "error");
+      return;
     }
 
-    .sigCanvas {
-      border: 1px solid #dcdcdc;
-      border-radius: 10px;
-      width: 100%;
-      height: 180px;
-      background: #fafafa;
-      cursor: crosshair;
-
-      @media (max-width: 480px) {
-        height: 150px;
-      }
+    let signatureData = "";
+    if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
+      signatureData = sigCanvas.current.getCanvas().toDataURL("image/png");
+    } else {
+      showPopup("Vă rugăm să semnați!", "error");
+      return;
     }
 
-    button {
-      margin-top: 8px;
-      padding: 6px 14px;
-      font-size: 13px;
-      border: none;
-      background: $pink;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.2s ease;
+    const items = cart.map((item) => ({
+      _id: item._id || item.product?._id,
+      name: item.name || item.product?.name || "Produs fără nume",
+      boxes: Number(item.boxes || 0),
+      quantity: Number(item.quantity || 0),
+      price: Number(item.customPrice ?? item.price ?? 0),
+      unitsPerBox: Number(item.unitsPerBox || 1),
+    }));
 
-      &:hover {
-        transform: scale(1.05);
-        box-shadow: 0 0 12px rgba(255, 79, 163, 0.5);
-      }
-
-      @media (max-width: 480px) {
-        padding: 5px 12px;
-        font-size: 12px;
-      }
-    }
-  }
-
-  .submit-btn {
-    width: 90%;
-    max-width: 400px;
-    padding: 14px;
-    background: linear-gradient(90deg, $cyan, $pink);
-    color: white;
-    font-size: 18px;
-    font-weight: 700;
-    border: none;
-    border-radius: 12px;
-    margin-top: 12px;
-    cursor: pointer;
-    transition: 0.3s ease;
-
-    &:hover {
-      transform: scale(1.06);
-      box-shadow: 0 0 20px rgba(255, 79, 163, 0.6);
+    const invalidItem = items.find((i) => !i._id);
+    if (invalidItem) {
+      showPopup(`Produs invalid în coș: ${invalidItem.name}`, "error");
+      return;
     }
 
-    @media (max-width: 480px) {
-      width: 100%;
-      font-size: 16px;
-      padding: 12px;
+    const data = {
+      items,
+      agentName: agentName.trim(),
+      magazinName: magazinName.trim(),
+      cui: cui.trim(),
+      address: address.trim(),
+      responsiblePerson: responsiblePerson.trim(),
+      signature: signatureData,
+    };
+
+    try {
+      const token = localStorage.getItem("token");
+      axiosClient.defaults.headers.common["Authorization"] = token
+        ? `Bearer ${token}`
+        : "";
+
+      await axiosClient.post("/orders/create", data);
+
+      showPopup("Comanda trimisă cu succes!", "success");
+      clearCart();
+      sigCanvas.current?.clear();
+
+      setAgentName("");
+      setMagazinName("");
+      setCui("");
+      setAddress("");
+      setResponsiblePerson("");
+
+      navigate("/");
+    } catch (err) {
+      console.error("Error sending order:", err);
+      showPopup(
+        err.response?.data?.message || "Eroare la trimiterea comenzii.",
+        "error"
+      );
     }
-  }
+  };
+
+  const clearSignature = () => sigCanvas.current?.clear();
+
+  return (
+    <div className="agent-info">
+      <h2>Completează detaliile comenzii</h2>
+
+      <div className="form-container">
+        <input
+          type="text"
+          placeholder="Nume agent"
+          value={agentName}
+          onChange={(e) => setAgentName(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Nume magazin"
+          value={magazinName}
+          onChange={(e) => setMagazinName(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="CUI"
+          value={cui}
+          onChange={(e) => setCui(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Adresa de livrare"
+          value={address}
+          onChange={(e) => setAddress(e.target.value)}
+        />
+        <input
+          type="text"
+          placeholder="Persoană responsabilă"
+          value={responsiblePerson}
+          onChange={(e) => setResponsiblePerson(e.target.value)}
+        />
+
+        <div className="signature-container">
+          <label>Semnătură:</label>
+          <SignatureCanvas
+            ref={sigCanvas}
+            penColor="black"
+            canvasProps={{
+              width: 500,
+              height: 200,
+              className: "sigCanvas",
+              style: { border: "1px solid #ccc", borderRadius: "5px" },
+            }}
+          />
+          <button type="button" onClick={clearSignature}>
+            Șterge semnătura
+          </button>
+        </div>
+
+        <button className="submit-btn" onClick={sendOrder}>
+          Trimis
+        </button>
+      </div>
+
+      {/* Popup notification */}
+      {popup.show && (
+        <div className={`popup ${popup.type} show`}>
+          {popup.message}
+        </div>
+      )}
+    </div>
+  );
 }
