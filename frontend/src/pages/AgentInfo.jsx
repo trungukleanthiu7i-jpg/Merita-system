@@ -5,6 +5,10 @@ import SignatureCanvas from "react-signature-canvas";
 import "../styles/AgentInfo.scss";
 import { CartContext } from "../context/CartContext";
 
+// ✅ Import react-toastify
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 export default function AgentInfo() {
   const navigate = useNavigate();
   const { clearCart, cart } = useContext(CartContext);
@@ -15,15 +19,8 @@ export default function AgentInfo() {
   const [address, setAddress] = useState("");
   const [responsiblePerson, setResponsiblePerson] = useState("");
   const [loading, setLoading] = useState(false);
-  const [popup, setPopup] = useState({ show: false, message: "", type: "" });
 
   const sigCanvas = useRef(null);
-
-  // Show popup at top center
-  const showPopup = (message, type) => {
-    setPopup({ show: true, message, type });
-    setTimeout(() => setPopup({ show: false, message: "", type: "" }), 3000);
-  };
 
   const sendOrder = async () => {
     if (
@@ -33,12 +30,12 @@ export default function AgentInfo() {
       !address.trim() ||
       !responsiblePerson.trim()
     ) {
-      showPopup("Completează toate câmpurile obligatorii!", "error");
+      toast.error("Completează toate câmpurile obligatorii!");
       return;
     }
 
     if (cart.length === 0) {
-      showPopup("Coșul este gol!", "error");
+      toast.error("Coșul este gol!");
       return;
     }
 
@@ -46,7 +43,7 @@ export default function AgentInfo() {
     if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
       signatureData = sigCanvas.current.getCanvas().toDataURL("image/png");
     } else {
-      showPopup("Semnătura este obligatorie!", "error");
+      toast.error("Semnătura este obligatorie!");
       return;
     }
 
@@ -61,7 +58,7 @@ export default function AgentInfo() {
 
     const invalidItem = items.find((i) => !i._id);
     if (invalidItem) {
-      showPopup(`Produs invalid în coș: ${invalidItem.name}`, "error");
+      toast.error(`Produs invalid în coș: ${invalidItem.name}`);
       return;
     }
 
@@ -84,7 +81,7 @@ export default function AgentInfo() {
 
       const response = await axiosClient.post("/orders/create", data);
 
-      showPopup(response.data?.message || "Comanda a fost trimisă cu succes!", "success");
+      toast.success(response.data?.message || "Comanda a fost trimisă cu succes!");
       clearCart();
       sigCanvas.current?.clear();
       setAgentName("");
@@ -96,7 +93,7 @@ export default function AgentInfo() {
       setTimeout(() => navigate("/"), 1500);
     } catch (err) {
       console.error("Error sending order:", err);
-      showPopup(err.response?.data?.message || "Trimiterea comenzii a eșuat!", "error");
+      toast.error(err.response?.data?.message || "Trimiterea comenzii a eșuat!");
     } finally {
       setLoading(false);
     }
@@ -162,11 +159,16 @@ export default function AgentInfo() {
         </button>
       </div>
 
-      {popup.show && (
-        <div className={`toast-message ${popup.type}`}>
-          {popup.message}
-        </div>
-      )}
+      {/* ✅ ToastContainer displays the popup notifications */}
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick
+        pauseOnHover
+        draggable
+      />
     </div>
   );
 }
