@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import "../styles/Login.scss";
 
 export default function Login() {
   const { login, loading } = useAuth();
@@ -28,28 +29,52 @@ export default function Login() {
   };
 
   return (
-    <div style={{ maxWidth: "400px", margin: "50px auto" }}>
-      <h2>Login</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Parola"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? "Se încarcă..." : "Login"}
-        </button>
-      </form>
-      {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
+    <div className="login-page">
+      {/* Background shapes */}
+      <div className="background-shapes">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+      {/* Login container */}
+      <div className="login-container">
+
+        {/* Logo + Welcome */}
+        <div className="logo-section">
+          <img src="/zdrava.png" alt="Zdrava Logo" className="logo" />
+          <h1>Bine ai revenit!</h1>
+          <p>Autentifică-te pentru a accesa sistemul</p>
+        </div>
+
+        {/* Login Form */}
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+
+          <input
+            type="password"
+            placeholder="Parola"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+
+          <button type="submit" disabled={loading}>
+            {loading ? "Se încarcă..." : "Login"}
+          </button>
+        </form>
+
+        {/* Error message */}
+        {error && <p className="error-message">{error}</p>}
+      </div>
     </div>
   );
 }
