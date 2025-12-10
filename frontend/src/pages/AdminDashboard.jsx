@@ -189,6 +189,83 @@ export default function AdminDashboard() {
           )}
         </tbody>
       </table>
+
+      {/* ===============================
+           MAGAZINE ORDERS SECTION
+      =============================== */}
+      <div className="magazine-section">
+        <h2>Magazine Orders</h2>
+        <div className="filters">
+          <select value={selectedMagazine} onChange={(e) => setSelectedMagazine(e.target.value)}>
+            <option value="">Select Magazine</option>
+            {magazines.map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+          <button type="button" onClick={fetchMagazineOrders}>Fetch Orders</button>
+        </div>
+        {Object.keys(magazineProductStats).length > 0 && (
+          <table className="stats-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Units</th>
+                <th>Boxes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(magazineProductStats).map(([name, stats]) => (
+                <tr key={name}>
+                  <td>{name}</td>
+                  <td>{stats.units}</td>
+                  <td>{stats.boxes}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* ===============================
+           AGENT ORDERS SECTION
+      =============================== */}
+      <div className="agent-section">
+        <h2>Agent Orders</h2>
+        <div className="filters">
+          <select value={selectedAgent} onChange={(e) => setSelectedAgent(e.target.value)}>
+            <option value="">Select Agent</option>
+            {agents.map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+          <input type="date" value={agentStartDate} onChange={(e) => setAgentStartDate(e.target.value)} />
+          <input type="date" value={agentEndDate} onChange={(e) => setAgentEndDate(e.target.value)} />
+          <button type="button" onClick={fetchAgentOrders}>Fetch Orders</button>
+        </div>
+        <div className="agent-stats">
+          <p>Total Orders: {agentStats.totalOrders}</p>
+          <p>Total Revenue: {agentStats.totalRevenue.toFixed(2)} RON</p>
+          {Object.keys(agentStats.products).length > 0 && (
+            <table className="stats-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Units</th>
+                  <th>Boxes</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(agentStats.products).map(([name, stats]) => (
+                  <tr key={name}>
+                    <td>{name}</td>
+                    <td>{stats.units}</td>
+                    <td>{stats.boxes}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
     </div>
   );
 }
@@ -209,8 +286,7 @@ function OrderRow({ order, index, deleteOrder }) {
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
     doc.setFontSize(16);
-    // Use the table index as order number
-    doc.text(`Order #${index}`, 14, 20);
+    doc.text(`Order #${index}`, 14, 20); // Use table index
 
     doc.setFontSize(12);
     doc.text(`Agent: ${order.agentName}`, 14, 30);
@@ -222,7 +298,6 @@ function OrderRow({ order, index, deleteOrder }) {
 
     // Add signature if exists
     if (order.signature) {
-      // Adjust x, y, width, height as needed
       doc.addImage(order.signature, "PNG", 150, 25, 40, 20);
     }
 
