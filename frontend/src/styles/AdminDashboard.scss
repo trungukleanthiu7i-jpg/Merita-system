@@ -345,6 +345,39 @@
   }
 }
 
+/* ============================= */
+/* Download Button/Icon Styling  */
+/* ============================= */
+.download-btn {
+  background-color: #4caf50; /* green background */
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  margin-left: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: #45a049;
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  &:focus {
+    outline: none;
+  }
+}
+
+
 
 
 

@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
 import "../styles/AdminDashboard.scss";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -187,104 +189,12 @@ export default function AdminDashboard() {
           )}
         </tbody>
       </table>
-
-      {/* Magazine Section */}
-      <h2 className="magazine-title">Magazine Orders</h2>
-      <div className="magazine-filters">
-        <label>
-          Magazine:
-          <select value={selectedMagazine} onChange={(e) => setSelectedMagazine(e.target.value)}>
-            <option value="">-- Select Magazine --</option>
-            {magazines.map((m) => <option key={m} value={m}>{m}</option>)}
-          </select>
-        </label>
-        <label>
-          Start:
-          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-        </label>
-        <label>
-          End:
-          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-        </label>
-        <button type="button" onClick={fetchMagazineOrders}>Show Orders</button>
-      </div>
-
-      <table className="magazine-stats-table">
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Total Units Sold</th>
-            <th>Total Boxes Sold</th>
-          </tr>
-        </thead>
-        <tbody>
-          {Object.keys(magazineProductStats).length === 0 ? (
-            <tr><td colSpan="3" style={{ textAlign: "center" }}>No data</td></tr>
-          ) : (
-            Object.entries(magazineProductStats).map(([name, data]) => (
-              <tr key={name}>
-                <td>{name}</td>
-                <td>{data.units}</td>
-                <td>{data.boxes}</td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-
-      {/* Agent Section */}
-      <h2 className="agent-title">Agent Orders</h2>
-      <div className="agent-filters">
-        <label>
-          Agent:
-          <select value={selectedAgent} onChange={(e) => setSelectedAgent(e.target.value)}>
-            <option value="">-- Select Agent --</option>
-            {agents.map((a) => <option key={a} value={a}>{a}</option>)}
-          </select>
-        </label>
-        <label>
-          Start:
-          <input type="date" value={agentStartDate} onChange={(e) => setAgentStartDate(e.target.value)} />
-        </label>
-        <label>
-          End:
-          <input type="date" value={agentEndDate} onChange={(e) => setAgentEndDate(e.target.value)} />
-        </label>
-        <button type="button" onClick={fetchAgentOrders}>Show Orders</button>
-      </div>
-
-      <div className="agent-stats-section">
-        <p>Total Orders: {agentStats.totalOrders}</p>
-        <p>Total Revenue: {agentStats.totalRevenue.toFixed(2)} RON</p>
-        <table className="magazine-stats-table">
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th>Total Units Sold</th>
-              <th>Total Boxes Sold</th>
-            </tr>
-          </thead>
-          <tbody>
-            {Object.keys(agentStats.products).length === 0 ? (
-              <tr><td colSpan="3" style={{ textAlign: "center" }}>No data</td></tr>
-            ) : (
-              Object.entries(agentStats.products).map(([name, data]) => (
-                <tr key={name}>
-                  <td>{name}</td>
-                  <td>{data.units}</td>
-                  <td>{data.boxes}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 }
 
 // ==============================
-// ORDER ROW COMPONENT
+// ORDER ROW COMPONENT WITH DOWNLOAD PDF
 // ==============================
 function OrderRow({ order, index, deleteOrder }) {
   const [open, setOpen] = useState(false);
@@ -295,6 +205,47 @@ function OrderRow({ order, index, deleteOrder }) {
         return sum + units * Number(item.price || 0);
       }, 0)
     : 0;
+
+  const handleDownloadPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    // Use the table index as order number
+    doc.text(`Order #${index}`, 14, 20);
+
+    doc.setFontSize(12);
+    doc.text(`Agent: ${order.agentName}`, 14, 30);
+    doc.text(`Magazin: ${order.magazinName}`, 14, 37);
+    doc.text(`Date: ${new Date(order.createdAt).toLocaleDateString()}`, 14, 44);
+    doc.text(`CUI: ${order.cui}`, 14, 51);
+    doc.text(`Address: ${order.address}`, 14, 58);
+    doc.text(`Responsible: ${order.responsiblePerson}`, 14, 65);
+
+    // Add signature if exists
+    if (order.signature) {
+      // Adjust x, y, width, height as needed
+      doc.addImage(order.signature, "PNG", 150, 25, 40, 20);
+    }
+
+    const items = order.items.map(item => {
+      const totalUnits = Number(item.quantity || 0) + Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+      return [
+        item.name,
+        item.quantity,
+        item.boxes,
+        item.unitsPerBox,
+        totalUnits,
+        (totalUnits * Number(item.price || 0)).toFixed(2) + " RON",
+      ];
+    });
+
+    autoTable(doc, {
+      startY: 90,
+      head: [["Product", "Qty", "Boxes", "Units/Box", "Total Units", "Price"]],
+      body: items,
+    });
+
+    doc.save(`Order_${index}.pdf`);
+  };
 
   return (
     <>
@@ -308,13 +259,18 @@ function OrderRow({ order, index, deleteOrder }) {
         <td>{order.address}</td>
         <td>{order.responsiblePerson}</td>
         <td>{order.signature ? <img src={order.signature} alt="Signature" className="signature-img" /> : "N/A"}</td>
-        <td><button type="button" onClick={() => setOpen(!open)}>View</button></td>  
-        <td><button type="button" className="delete-btn" onClick={() => deleteOrder(order._id)}>🗑️</button></td>
+        <td>
+          <button type="button" onClick={() => setOpen(!open)}>View</button>
+        </td>
+        <td>
+          <button type="button" className="delete-btn" onClick={() => deleteOrder(order._id)}>🗑️</button>
+          <button type="button" className="download-btn" onClick={handleDownloadPDF}>⬇️</button>
+        </td>
       </tr>
 
       {open && (
         <tr className="details-row">
-          <td colSpan="11">
+          <td colSpan="12">
             <div className="details-box">
               <h3>Products</h3>
               <table className="details-products-table">
