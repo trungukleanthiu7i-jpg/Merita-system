@@ -9,6 +9,7 @@ export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Backend root without /api
   const API_URL = process.env.REACT_APP_API_URL.replace(/\/api$/, "");
 
   useEffect(() => {
@@ -50,21 +51,22 @@ export default function ProductsPage() {
               (product.stoc || "in stoc").trim().toLowerCase() ===
               "out of stoc";
 
+            // ✅ Fix: use backticks for template literals
             const imageSrc = product.image
-              ? ${API_URL}/images/${encodeURIComponent(product.image)}
-              : ${API_URL}/images/placeholder.png;
+              ? `${API_URL}/images/${encodeURIComponent(product.image)}`
+              : `${API_URL}/images/placeholder.png`;
 
             return (
               <div key={product._id} className="product-card">
 
-                {/* ⭐ IMAGE WRAPPER FIX ⭐ */}
+                {/* IMAGE */}
                 <div className="image-wrapper">
                   <img
                     src={imageSrc}
                     alt={product.name || "Unnamed product"}
                     onError={(e) => {
                       e.target.onerror = null;
-                      e.target.src = ${API_URL}/images/placeholder.png;
+                      e.target.src = `${API_URL}/images/placeholder.png`;
                     }}
                   />
                 </div>
