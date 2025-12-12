@@ -190,9 +190,7 @@ export default function AdminDashboard() {
         </tbody>
       </table>
 
-      {/* ===============================
-           MAGAZINE ORDERS SECTION
-      =============================== */}
+      {/* MAGAZINE SECTION */}
       <div className="magazine-section">
         <h2>Magazine Orders</h2>
         <div className="filters">
@@ -204,6 +202,7 @@ export default function AdminDashboard() {
           <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
           <button type="button" onClick={fetchMagazineOrders}>Fetch Orders</button>
         </div>
+
         {Object.keys(magazineProductStats).length > 0 && (
           <table className="stats-table">
             <thead>
@@ -226,9 +225,7 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      {/* ===============================
-           AGENT ORDERS SECTION
-      =============================== */}
+      {/* AGENT SECTION */}
       <div className="agent-section">
         <h2>Agent Orders</h2>
         <div className="filters">
@@ -240,9 +237,11 @@ export default function AdminDashboard() {
           <input type="date" value={agentEndDate} onChange={(e) => setAgentEndDate(e.target.value)} />
           <button type="button" onClick={fetchAgentOrders}>Fetch Orders</button>
         </div>
+
         <div className="agent-stats">
           <p>Total Orders: {agentStats.totalOrders}</p>
           <p>Total Revenue: {agentStats.totalRevenue.toFixed(2)} RON</p>
+
           {Object.keys(agentStats.products).length > 0 && (
             <table className="stats-table">
               <thead>
@@ -265,44 +264,56 @@ export default function AdminDashboard() {
           )}
         </div>
       </div>
-
     </div>
   );
 }
 
-// ==============================
-// ORDER ROW COMPONENT WITH DOWNLOAD PDF
-// ==============================
+// ==========================================
+// ORDER ROW + UPDATED DOWNLOAD BUTTON
+// ==========================================
 function OrderRow({ order, index, deleteOrder }) {
   const [open, setOpen] = useState(false);
 
   const total = Array.isArray(order.items)
     ? order.items.reduce((sum, item) => {
-        const units = Number(item.quantity || 0) + Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+        const units =
+          Number(item.quantity || 0) +
+          Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
         return sum + units * Number(item.price || 0);
       }, 0)
     : 0;
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text(`Order #${index}`, 14, 20); // Use table index
 
+    // LOGO
+    const logo = "/zdrava.png"; // public folder
+    doc.addImage(logo, "PNG", 150, 10, 60, 60);
+
+    // Title
+    doc.setFontSize(18);
+    doc.text(`Order #${index}`, 14, 20);
+
+    // Order details
     doc.setFontSize(12);
-    doc.text(`Agent: ${order.agentName}`, 14, 30);
-    doc.text(`Magazin: ${order.magazinName}`, 14, 37);
-    doc.text(`Date: ${new Date(order.createdAt).toLocaleDateString()}`, 14, 44);
-    doc.text(`CUI: ${order.cui}`, 14, 51);
-    doc.text(`Address: ${order.address}`, 14, 58);
-    doc.text(`Responsible: ${order.responsiblePerson}`, 14, 65);
+    doc.text(`Agent: ${order.agentName}`, 14, 35);
+    doc.text(`Magazin: ${order.magazinName}`, 14, 42);
+    doc.text(`Date: ${new Date(order.createdAt).toLocaleDateString()}`, 14, 49);
+    doc.text(`CUI: ${order.cui}`, 14, 56);
+    doc.text(`Address: ${order.address}`, 14, 63);
+    doc.text(`Responsible:`, 14, 73);
+    doc.text(order.responsiblePerson, 14, 80);
 
-    // Add signature if exists
+    // Signature under responsible
     if (order.signature) {
-      doc.addImage(order.signature, "PNG", 150, 25, 40, 20);
+      doc.addImage(order.signature, "PNG", 14, 88, 50, 25);
     }
 
-    const items = order.items.map(item => {
-      const totalUnits = Number(item.quantity || 0) + Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+    // Products table
+    const rows = order.items.map(item => {
+      const totalUnits =
+        Number(item.quantity || 0) +
+        Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
       return [
         item.name,
         item.quantity,
@@ -314,10 +325,14 @@ function OrderRow({ order, index, deleteOrder }) {
     });
 
     autoTable(doc, {
-      startY: 90,
+      startY: 120,
       head: [["Product", "Qty", "Boxes", "Units/Box", "Total Units", "Price"]],
-      body: items,
+      body: rows,
     });
+
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(14);
+    doc.text(`TOTAL: ${total.toFixed(2)} RON`, 14, finalY);
 
     doc.save(`Order_${index}.pdf`);
   };
@@ -333,7 +348,13 @@ function OrderRow({ order, index, deleteOrder }) {
         <td>{order.cui}</td>
         <td>{order.address}</td>
         <td>{order.responsiblePerson}</td>
-        <td>{order.signature ? <img src={order.signature} alt="Signature" className="signature-img" /> : "N/A"}</td>
+        <td>
+          {order.signature ? (
+            <img src={order.signature} alt="Signature" className="signature-img" />
+          ) : (
+            "N/A"
+          )}
+        </td>
         <td>
           <button type="button" onClick={() => setOpen(!open)}>View</button>
         </td>
@@ -360,10 +381,11 @@ function OrderRow({ order, index, deleteOrder }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {order.items.map((item) => {
-                    const totalUnits = Number(item.quantity || 0) + Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+                  {order.items.map(item => {
+                    const totalUnits =
+                      Number(item.quantity || 0) + Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
                     return (
-                      <tr key={item._id || item.name}>
+                      <tr key={item.name}>
                         <td>{item.name}</td>
                         <td>{item.quantity}</td>
                         <td>{item.boxes}</td>
