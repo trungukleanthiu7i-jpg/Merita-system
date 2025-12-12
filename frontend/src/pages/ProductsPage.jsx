@@ -2,23 +2,23 @@ import { useEffect, useState, useContext } from "react";
 import axiosClient from "../api/axiosClient";
 import { CartContext } from "../context/CartContext";
 import "../styles/ProductCard.scss";
+import { ReactBarcode } from "react-jsbarcode";
 
 export default function ProductsPage() {
   const { addToCart } = useContext(CartContext);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = process.env.REACT_APP_API_URL;
+  // Backend root without /api
+  const API_URL = process.env.REACT_APP_API_URL.replace(/\/api$/, "");
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const res = await axiosClient.get("/products");
-
         const productsData = Array.isArray(res.data)
           ? res.data
           : res.data.products || [];
-
         setProducts(productsData);
       } catch (err) {
         console.error("Error fetching products:", err);
@@ -51,11 +51,21 @@ export default function ProductsPage() {
               (product.stoc || "in stoc").trim().toLowerCase() ===
               "out of stoc";
 
+            // Use the exact filename from DB and encode special characters
+            const imageSrc = product.image
+              ? `${API_URL}/images/${encodeURIComponent(product.image)}`
+              : `${API_URL}/images/placeholder.png`;
+
             return (
               <div key={product._id} className="product-card">
                 <img
-                  src={`${API_URL}/images/${product.image || "placeholder.png"}`}
+                  src={imageSrc}
                   alt={product.name || "Unnamed product"}
+                  onError={(e) => {
+                    // Fallback to placeholder if image does not exist
+                    e.target.onerror = null;
+                    e.target.src = `${API_URL}/images/placeholder.png`;
+                  }}
                 />
 
                 <h3>{product.name || "Unnamed product"}</h3>
@@ -64,9 +74,24 @@ export default function ProductsPage() {
                   <strong>Price:</strong> {product.price ?? 0} RON
                 </p>
                 <p>
-                  <strong>Units per box:</strong>{" "}
-                  {product.unitsPerBox || 1}
+                  <strong>Units per box:</strong> {product.unitsPerBox || 1}
                 </p>
+
+                {/* BARCODE */}
+                <div className="product-barcode">
+                  {product.barcode ? (
+                    <ReactBarcode
+                      value={product.barcode}
+                      format="CODE128"
+                      displayValue={true}
+                      fontSize={14}
+                      width={2}
+                      height={60}
+                    />
+                  ) : (
+                    <p>No barcode</p>
+                  )}
+                </div>
 
                 <p className={isOutOfStock ? "out" : "in"}>
                   {isOutOfStock ? "OUT OF STOCK ❌" : "IN STOCK ✅"}

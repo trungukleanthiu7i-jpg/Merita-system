@@ -76,3 +76,12 @@
     }
   }
 }
+.product-barcode {
+  margin: 10px 0;
+  text-align: center;
+
+  svg {
+    max-width: 180px;
+    width: 100%;
+  }
+}
