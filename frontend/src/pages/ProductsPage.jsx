@@ -51,25 +51,26 @@ export default function ProductsPage() {
               (product.stoc || "in stoc").trim().toLowerCase() ===
               "out of stoc";
 
-            // ✅ Fix: use backticks for template literals
+            // Use the exact filename from DB and encode special characters
             const imageSrc = product.image
               ? `${API_URL}/images/${encodeURIComponent(product.image)}`
               : `${API_URL}/images/placeholder.png`;
 
             return (
-              <div key={product._id} className="product-card">
-
-                {/* IMAGE */}
-                <div className="image-wrapper">
+              <div className="product-card">
                   <img
                     src={imageSrc}
+                      style={{
+    width: "100%",
+    height: "450px",
+    objectFit: "contain",
+  }}
                     alt={product.name || "Unnamed product"}
                     onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = `${API_URL}/images/placeholder.png`;
+                    e.target.onerror = null;
+                    e.target.src = `${API_URL}/images/placeholder.png`;
                     }}
-                  />
-                </div>
+                />
 
                 <h3>{product.name || "Unnamed product"}</h3>
 
