@@ -57,7 +57,6 @@ export default function ProductsPage() {
               : `${API_URL}/images/placeholder.png`;
 
             return (
-<<<<<<< HEAD
               <div key={product._id} className="product-card">
 
                 {/* IMAGE */}
@@ -71,22 +70,6 @@ export default function ProductsPage() {
                     }}
                   />
                 </div>
-=======
-              <div className="product-card">
-                  <img
-                    src={imageSrc}
-                      style={{
-    width: "100%",
-    height: "250px",
-    objectFit: "contain",
-  }}
-                    alt={product.name || "Unnamed product"}
-                    onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = `${API_URL}/images/placeholder.png`;
-                    }}
-                />
->>>>>>> 75cb481 (Update ProductsPage, styles, and  all product images)
 
                 <h3>{product.name || "Unnamed product"}</h3>
 
