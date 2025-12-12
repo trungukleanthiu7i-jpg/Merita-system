@@ -35,10 +35,15 @@
   }
 
   img {
-    width: 100%;
-    height: 200px;
+    max-width: 200px;      /* Constrain width */
+    max-height: 150px;     /* Constrain height */
+    width: auto;           /* Keep aspect ratio */
+    height: auto;          /* Keep aspect ratio */
     object-fit: contain;
     margin-bottom: 15px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   h3 {
@@ -92,6 +97,7 @@
   svg {
     max-width: 180px;
     width: 100%;
+    height: auto;
   }
 }
 
@@ -110,7 +116,8 @@
     padding: 15px;
 
     img {
-      height: 150px;
+      max-width: 150px;
+      max-height: 120px;
       margin-bottom: 10px;
     }
 
@@ -140,7 +147,8 @@
   }
 
   .product-card img {
-    height: 120px;
+    max-width: 120px;
+    max-height: 100px;
   }
 
   .product-barcode svg {
