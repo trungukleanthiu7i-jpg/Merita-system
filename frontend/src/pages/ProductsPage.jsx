@@ -51,7 +51,7 @@ export default function ProductsPage() {
               (product.stoc || "in stoc").trim().toLowerCase() ===
               "out of stoc";
 
-            // Use the exact filename from DB and encode special characters
+            // Encode filename to handle spaces/special characters
             const imageSrc = product.image
               ? `${API_URL}/images/${encodeURIComponent(product.image)}`
               : `${API_URL}/images/placeholder.png`;
@@ -62,7 +62,6 @@ export default function ProductsPage() {
                   src={imageSrc}
                   alt={product.name || "Unnamed product"}
                   onError={(e) => {
-                    // Fallback to placeholder if image does not exist
                     e.target.onerror = null;
                     e.target.src = `${API_URL}/images/placeholder.png`;
                   }}
