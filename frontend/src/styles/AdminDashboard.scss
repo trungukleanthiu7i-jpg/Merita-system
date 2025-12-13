@@ -136,8 +136,38 @@
         transform: scale(1.2);
       }
     }
+
+    td .download-btn {
+      background-color: #4caf50; /* green background */
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      margin-left: 5px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      &:hover {
+        background-color: #45a049;
+        transform: scale(1.1);
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+
+      &:focus {
+        outline: none;
+      }
+    }
   }
 
+  /* Products Details Row */
   .details-row {
     background: #fafafa;
     transition: all 0.3s ease;
@@ -153,35 +183,51 @@
         font-size: 22px;
         margin-bottom: 15px;
       }
+
+      .details-products-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+
+        thead {
+          background: #f5f5f5;
+        }
+
+        th,
+        td {
+          padding: 10px 12px;
+          border-bottom: 1px solid #ddd;
+          font-size: 15px;
+          text-align: center;
+        }
+
+        tr:hover td {
+          background: #f9f9f9;
+        }
+
+        th {
+          font-weight: 600;
+        }
+
+        /* Barcode cell styling */
+        td.barcode-cell {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        /* Make barcode smaller in table */
+        svg {
+          max-height: 90px; /* adjust height of barcode lines */
+          width: auto;
+        }
+      }
     }
   }
 
-  .details-products-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-
-    thead {
-      background: #f5f5f5;
-    }
-
-    th,
-    td {
-      padding: 10px 12px;
-      border-bottom: 1px solid #ddd;
-      font-size: 15px;
-    }
-
-    tr:hover td {
-      background: #f9f9f9;
-    }
-
-    th {
-      font-weight: 600;
-    }
-  }
-
-  .magazine-stats-table {
+  /* Magazine & Agent Stats Tables */
+  .magazine-stats-table,
+  .agent-stats-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
@@ -344,40 +390,3 @@
     opacity: 0.9;
   }
 }
-
-/* ============================= */
-/* Download Button/Icon Styling  */
-/* ============================= */
-.download-btn {
-  background-color: #4caf50; /* green background */
-  border: none;
-  color: white;
-  padding: 6px 12px;
-  margin-left: 5px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  &:hover {
-    background-color: #45a049;
-    transform: scale(1.1);
-  }
-
-  &:active {
-    transform: scale(0.95);
-  }
-
-  &:focus {
-    outline: none;
-  }
-}
-
-
-
-
-

@@ -4,6 +4,8 @@ import axiosClient from "../api/axiosClient";
 import "../styles/AdminDashboard.scss";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { ReactBarcode } from "react-jsbarcode";
+import JsBarcode from "jsbarcode";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -11,13 +13,12 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
-
+  const [products, setProducts] = useState([]);
   const [magazines, setMagazines] = useState([]);
   const [selectedMagazine, setSelectedMagazine] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [magazineProductStats, setMagazineProductStats] = useState({});
-
   const [agents, setAgents] = useState([]);
   const [selectedAgent, setSelectedAgent] = useState("");
   const [agentStartDate, setAgentStartDate] = useState("");
@@ -27,6 +28,19 @@ export default function AdminDashboard() {
     totalOrders: 0,
     products: {},
   });
+
+  // ===============================
+  // FETCH PRODUCTS FOR BARCODE LOOKUP
+  // ===============================
+  const fetchProducts = useCallback(async () => {
+    try {
+      const res = await axiosClient.get("/products");
+      setProducts(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error("Error fetching products:", err);
+      setProducts([]);
+    }
+  }, []);
 
   // ===============================
   // FETCH ALL ORDERS
@@ -58,9 +72,10 @@ export default function AdminDashboard() {
   }, []);
 
   useEffect(() => {
+    fetchProducts();
     fetchOrders();
     fetchMagazinesAndAgents();
-  }, [fetchOrders, fetchMagazinesAndAgents]);
+  }, [fetchOrders, fetchMagazinesAndAgents, fetchProducts]);
 
   // ===============================
   // DELETE ORDER
@@ -94,7 +109,8 @@ export default function AdminDashboard() {
       const stats = {};
       data.forEach(order => {
         order.items?.forEach(item => {
-          const totalUnits = Number(item.quantity || 0) + Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+          const totalUnits =
+            Number(item.quantity || 0) + Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
           const totalBoxes = Number(item.boxes || 0);
           if (!stats[item.name]) stats[item.name] = { units: 0, boxes: 0 };
           stats[item.name].units += totalUnits;
@@ -121,7 +137,8 @@ export default function AdminDashboard() {
       const products = {};
       data.forEach(order => {
         order.items?.forEach(item => {
-          const totalUnits = Number(item.quantity || 0) + Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+          const totalUnits =
+            Number(item.quantity || 0) + Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
           const totalBoxes = Number(item.boxes || 0);
           totalRevenue += totalUnits * Number(item.price || 0);
           if (!products[item.name]) products[item.name] = { units: 0, boxes: 0 };
@@ -180,7 +197,13 @@ export default function AdminDashboard() {
         <tbody>
           {orders.length > 0 ? (
             orders.map((order, i) => (
-              <OrderRow key={order._id} order={order} index={i + 1} deleteOrder={deleteOrder} />
+              <OrderRow
+                key={order._id}
+                order={order}
+                index={i + 1}
+                deleteOrder={deleteOrder}
+                products={products}
+              />
             ))
           ) : (
             <tr>
@@ -269,25 +292,25 @@ export default function AdminDashboard() {
 }
 
 // ==========================================
-// ORDER ROW + UPDATED DOWNLOAD BUTTON
+// ORDER ROW COMPONENT WITH BARCODE
 // ==========================================
-function OrderRow({ order, index, deleteOrder }) {
+function OrderRow({ order, index, deleteOrder, products }) {
   const [open, setOpen] = useState(false);
 
   const total = Array.isArray(order.items)
     ? order.items.reduce((sum, item) => {
-        const units =
-          Number(item.quantity || 0) +
-          Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
-        return sum + units * Number(item.price || 0);
-      }, 0)
+      const units =
+        Number(item.quantity || 0) +
+        Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+      return sum + units * Number(item.price || 0);
+    }, 0)
     : 0;
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
 
     // LOGO
-    const logo = "/zdrava.png"; // public folder
+    const logo = "/zdrava.png";
     doc.addImage(logo, "PNG", 150, 10, 60, 60);
 
     // Title
@@ -304,30 +327,78 @@ function OrderRow({ order, index, deleteOrder }) {
     doc.text(`Responsible:`, 14, 73);
     doc.text(order.responsiblePerson, 14, 80);
 
-    // Signature under responsible
     if (order.signature) {
       doc.addImage(order.signature, "PNG", 14, 88, 50, 25);
     }
 
-    // Products table
+    // Products table for PDF
     const rows = order.items.map(item => {
       const totalUnits =
         Number(item.quantity || 0) +
         Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
-      return [
-        item.name,
-        item.quantity,
-        item.boxes,
-        item.unitsPerBox,
-        totalUnits,
-        (totalUnits * Number(item.price || 0)).toFixed(2) + " RON",
-      ];
+      return { item, totalUnits };
     });
 
     autoTable(doc, {
       startY: 120,
-      head: [["Product", "Qty", "Boxes", "Units/Box", "Total Units", "Price"]],
-      body: rows,
+      head: [["Product", "Boxes", "Units/Box", "Total Units", "Price", "Barcode"]],
+      body: rows.map(r => [
+        r.item.name,
+        r.item.boxes,
+        r.item.unitsPerBox,
+        r.totalUnits,
+        (r.totalUnits * Number(r.item.price || 0)).toFixed(2) + " RON",
+        "",
+      ]),
+      didDrawCell: (data) => {
+        // Column index of barcode (last column)
+        if (data.column.index === data.table.columns.length - 1 && data.cell.section === 'body') {
+          const item = rows[data.row.index].item;
+          const barcodeValue = products.find(p => p.name === item.name)?.barcode || "";
+          if (!barcodeValue) return;
+
+          // Create a fresh canvas for each barcode
+          const canvas = document.createElement("canvas");
+          JsBarcode(canvas, barcodeValue, {
+            format: "CODE128",
+            width: 3,        // increase width for better visibility
+            height: 40,
+            displayValue: false,
+            margin: 0
+          });
+
+          // Scale to fit cell width
+          const cellPadding = 2;
+          const scale = Math.min(1, (data.cell.width - cellPadding * 2) / canvas.width);
+          const imgWidth = canvas.width * scale;
+          const imgHeight = canvas.height * scale;
+
+          const imgData = canvas.toDataURL("image/png");
+
+          // Draw barcode image
+          doc.addImage(
+            imgData,
+            "PNG",
+            data.cell.x + cellPadding,
+            data.cell.y + cellPadding,
+            imgWidth,
+            imgHeight
+          );
+
+          // Draw barcode number below barcode
+          const fontSize = 4;
+          doc.setFontSize(fontSize);
+          doc.text(
+            barcodeValue,
+            data.cell.x + data.cell.width / 2,
+            data.cell.y + cellPadding + imgHeight + 2,
+            { align: "center" }
+          );
+        }
+      }
+
+
+
     });
 
     const finalY = doc.lastAutoTable.finalY + 10;
@@ -348,22 +419,15 @@ function OrderRow({ order, index, deleteOrder }) {
         <td>{order.cui}</td>
         <td>{order.address}</td>
         <td>{order.responsiblePerson}</td>
-        <td>
-          {order.signature ? (
-            <img src={order.signature} alt="Signature" className="signature-img" />
-          ) : (
-            "N/A"
-          )}
-        </td>
-        <td>
-          <button type="button" onClick={() => setOpen(!open)}>View</button>
-        </td>
+        <td>{order.signature ? <img src={order.signature} alt="Signature" className="signature-img" /> : "N/A"}</td>
+        <td><button type="button" onClick={() => setOpen(!open)}>View</button></td>
         <td>
           <button type="button" className="delete-btn" onClick={() => deleteOrder(order._id)}>🗑️</button>
           <button type="button" className="download-btn" onClick={handleDownloadPDF}>⬇️</button>
         </td>
       </tr>
 
+      {/* Products Table with Barcode */}
       {open && (
         <tr className="details-row">
           <td colSpan="12">
@@ -373,7 +437,7 @@ function OrderRow({ order, index, deleteOrder }) {
                 <thead>
                   <tr>
                     <th>Product</th>
-                    <th>Qty</th>
+                    <th>Barcode</th>
                     <th>Boxes</th>
                     <th>Units/Box</th>
                     <th>Total Units</th>
@@ -381,13 +445,26 @@ function OrderRow({ order, index, deleteOrder }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {order.items.map(item => {
+                  {order.items.map((item, idx) => {
                     const totalUnits =
-                      Number(item.quantity || 0) + Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+                      Number(item.quantity || 0) +
+                      Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+                    const barcode = products.find(p => p.name === item.name)?.barcode || "";
+
                     return (
-                      <tr key={item.name}>
+                      <tr key={idx}>
                         <td>{item.name}</td>
-                        <td>{item.quantity}</td>
+                        <td>
+                          {barcode ? (
+                            <ReactBarcode
+                              value={barcode}
+                              format="CODE128"
+                              width={1.5}
+                              height={40}
+                              displayValue={true}
+                            />
+                          ) : "—"}
+                        </td>
                         <td>{item.boxes}</td>
                         <td>{item.unitsPerBox}</td>
                         <td>{totalUnits}</td>

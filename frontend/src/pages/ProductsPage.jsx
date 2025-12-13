@@ -58,18 +58,18 @@ export default function ProductsPage() {
 
             return (
               <div className="product-card">
-                  <img
-                    src={imageSrc}
-                      style={{
-    width: "100%",
-    height: "450px",
-    objectFit: "contain",
-  }}
-                    alt={product.name || "Unnamed product"}
-                    onError={(e) => {
+                <img
+                  src={imageSrc}
+                  style={{
+                    width: "100%",
+                    height: "450px",
+                    objectFit: "contain",
+                  }}
+                  alt={product.name || "Unnamed product"}
+                  onError={(e) => {
                     e.target.onerror = null;
                     e.target.src = `${API_URL}/images/placeholder.png`;
-                    }}
+                  }}
                 />
 
                 <h3>{product.name || "Unnamed product"}</h3>
