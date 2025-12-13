@@ -16,7 +16,7 @@ router.get("/", async (req, res) => {
 // POST - Add a new product
 router.post("/", async (req, res) => {
   try {
-    const { name, description, price, category, unitsPerBox, image, stoc } = req.body;
+    const { name, description, price, category, unitsPerBox, image, stoc, barcode } = req.body;
 
     if (!name || price === undefined || !category || unitsPerBox === undefined) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -38,6 +38,7 @@ router.post("/", async (req, res) => {
       unitsPerBox: Number(unitsPerBox),
       image: image ? image.trim() : "",
       stoc: stockStatus,
+      barcode: barcode ? barcode.trim() : null, // ✅ optional barcode
     });
 
     await product.save();
@@ -51,7 +52,7 @@ router.post("/", async (req, res) => {
 // PUT - Update an existing product by ID
 router.put("/:id", async (req, res) => {
   try {
-    const { name, description, price, category, unitsPerBox, image, stoc } = req.body;
+    const { name, description, price, category, unitsPerBox, image, stoc, barcode } = req.body;
 
     // Build update object
     const updateData = {};
@@ -61,6 +62,7 @@ router.put("/:id", async (req, res) => {
     if (category !== undefined) updateData.category = category.trim();
     if (unitsPerBox !== undefined) updateData.unitsPerBox = Number(unitsPerBox);
     if (image !== undefined) updateData.image = image.trim();
+    if (barcode !== undefined) updateData.barcode = barcode ? barcode.trim() : null; // ✅ optional barcode
 
     // Normalize stock value for updates
     if (stoc !== undefined) {

@@ -1,4 +1,4 @@
-// src/pages/AddProduct.jsx  (sau unde se află în proiect)
+// src/pages/AddProduct.jsx
 import React, { useState } from "react";
 import axiosClient from "../api/axiosClient";  // ← FOARTE IMPORTANT
 import { useNavigate } from "react-router-dom";
@@ -15,6 +15,7 @@ const AddProduct = () => {
     unitsPerBox: "",
     image: "",
     stoc: "in stoc",
+    barcode: "", // ✅ optional barcode number
   });
 
   const [loading, setLoading] = useState(false);
@@ -34,8 +35,14 @@ const AddProduct = () => {
     setLoading(true);
 
     try {
+      // Save barcode as number or null if empty
+      const payload = {
+        ...form,
+        barcode: form.barcode ? form.barcode : null,
+      };
+
       // ★ FOLOSEȘTE axiosClient, NU axios + localhost!!!
-      await axiosClient.post("/products", form);
+      await axiosClient.post("/products", payload);
 
       alert("Product added successfully!");
       navigate("/admin");
@@ -96,6 +103,14 @@ const AddProduct = () => {
           type="text"
           name="image"
           placeholder="Image URL (optional)"
+          onChange={handleChange}
+        />
+
+        {/* ✅ Optional Barcode Number */}
+        <input
+          type="text"
+          name="barcode"
+          placeholder="Barcode Number (optional)"
           onChange={handleChange}
         />
 
