@@ -9,7 +9,6 @@ export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Backend root without /api
   const API_URL = process.env.REACT_APP_API_URL.replace(/\/api$/, "");
 
   useEffect(() => {
@@ -31,90 +30,105 @@ export default function ProductsPage() {
     fetchProducts();
   }, []);
 
-  if (loading)
+  if (loading) {
     return (
       <p style={{ textAlign: "center", marginTop: "50px" }}>
         Loading products...
       </p>
     );
+  }
+
+  if (!products.length) {
+    return (
+      <p style={{ textAlign: "center", marginTop: "50px" }}>
+        No products available.
+      </p>
+    );
+  }
 
   return (
     <div className="products-page">
       <h1>Products</h1>
 
       <div className="products-list">
-        {products.length > 0 ? (
-          products.map((product) => {
-            if (!product) return null;
+        {products.map((product) => {
+          if (!product || !product._id) return null;
 
-            const isOutOfStock =
-              (product.stoc || "in stoc").trim().toLowerCase() ===
-              "out of stoc";
+          const isOutOfStock =
+            (product.stoc || "in stoc").trim().toLowerCase() === "out of stoc";
 
-            // Use the exact filename from DB and encode special characters
-            const imageSrc = product.image
-              ? `${API_URL}/images/${encodeURIComponent(product.image)}`
-              : `${API_URL}/images/placeholder.png`;
+          // ---------- IMAGE ----------
+          let imageSrc = `${API_URL}/images/placeholder.png`;
+          if (product.image) {
+            if (/^https?:\/\//i.test(product.image)) {
+              imageSrc = product.image;
+            } else {
+              // Use the raw filename without encodeURIComponent
+              imageSrc = `${API_URL}/images/${product.image}`;
+            }
+          }
 
-            return (
-              <div className="product-card">
-                <img
-                  src={imageSrc}
-                  style={{
-                    width: "100%",
-                    height: "450px",
-                    objectFit: "contain",
-                  }}
-                  alt={product.name || "Unnamed product"}
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = `${API_URL}/images/placeholder.png`;
-                  }}
-                />
+          // ---------- BARCODE ----------
+          const barcodeValue =
+            product.barcode !== undefined && product.barcode !== null
+              ? String(product.barcode)
+              : "";
 
-                <h3>{product.name || "Unnamed product"}</h3>
+          return (
+            <div className="product-card" key={product._id}>
+              <img
+                src={imageSrc}
+                alt={product.name || "Unnamed product"}
+                style={{
+                  width: "100%",
+                  height: "450px",
+                  objectFit: "contain",
+                }}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = `${API_URL}/images/placeholder.png`;
+                }}
+              />
 
-                <p>
-                  <strong>Price:</strong> {product.price ?? 0} RON
-                </p>
-                <p>
-                  <strong>Units per box:</strong> {product.unitsPerBox || 1}
-                </p>
+              <h3>{product.name || "Unnamed product"}</h3>
 
-                {/* BARCODE */}
-                <div className="product-barcode">
-                  {product.barcode ? (
-                    <ReactBarcode
-                      value={product.barcode}
-                      format="CODE128"
-                      displayValue={true}
-                      fontSize={14}
-                      width={2}
-                      height={60}
-                    />
-                  ) : (
-                    <p>No barcode</p>
-                  )}
-                </div>
+              <p>
+                <strong>Price:</strong> {Number(product.price) || 0} RON
+              </p>
 
-                <p className={isOutOfStock ? "out" : "in"}>
-                  {isOutOfStock ? "OUT OF STOCK ❌" : "IN STOCK ✅"}
-                </p>
+              <p>
+                <strong>Units per box:</strong> {Number(product.unitsPerBox) || 1}
+              </p>
 
-                <button
-                  disabled={isOutOfStock}
-                  onClick={() => addToCart(product)}
-                >
-                  {isOutOfStock ? "Unavailable" : "Add to Order"}
-                </button>
+              {/* BARCODE */}
+              <div className="product-barcode">
+                {barcodeValue ? (
+                  <ReactBarcode
+                    value={barcodeValue}
+                    format="CODE128"
+                    displayValue={true}
+                    fontSize={12}
+                    width={1.8}
+                    height={55}
+                  />
+                ) : (
+                  <p style={{ fontSize: "12px", opacity: 0.6 }}>No barcode</p>
+                )}
               </div>
-            );
-          })
-        ) : (
-          <p style={{ textAlign: "center", marginTop: "50px" }}>
-            No products available.
-          </p>
-        )}
+
+              <p className={isOutOfStock ? "out" : "in"}>
+                {isOutOfStock ? "OUT OF STOCK ❌" : "IN STOCK ✅"}
+              </p>
+
+              <button
+                disabled={isOutOfStock}
+                onClick={() => addToCart(product)}
+              >
+                {isOutOfStock ? "Unavailable" : "Add to Order"}
+              </button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
