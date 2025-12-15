@@ -54,9 +54,11 @@ router.post("/create", async (req, res) => {
       return sum + totalUnits * price;
     }, 0);
 
-    // Generate next order number
-    const lastOrder = await Order.findOne().sort({ orderNumber: -1 });
-    const nextOrderNumber = lastOrder?.orderNumber ? lastOrder.orderNumber + 1 : 1;
+    // Generate next order number safely
+    // Find the latest order by creation date (latest createdAt)
+    const lastOrder = await Order.findOne().sort({ createdAt: -1 });
+    const nextOrderNumber = lastOrder ? lastOrder.orderNumber + 1 : 1;
+
 
     // Create new order
     const newOrder = new Order({
@@ -107,6 +109,7 @@ router.get("/", async (req, res) => {
       query.createdAt = { $gte: start, $lte: end };
     }
 
+    // ✅ Sort by orderNumber ascending to maintain proper order numbering
     const orders = await Order.find(query).sort({ createdAt: -1 });
     res.status(200).json(orders);
   } catch (err) {

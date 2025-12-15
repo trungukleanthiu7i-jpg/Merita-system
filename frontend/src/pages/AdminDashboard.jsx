@@ -50,7 +50,14 @@ export default function AdminDashboard() {
       const res = await axiosClient.get("/admin/orders", {
         params: { search, date: selectedDate },
       });
-      setOrders(Array.isArray(res.data) ? res.data : []);
+
+      // SORT BY orderNumber descending (latest order on top)
+      const sortedOrders = Array.isArray(res.data)
+        ? res.data.sort((a, b) => Number(b.orderNumber) - Number(a.orderNumber))
+        : [];
+
+
+      setOrders(sortedOrders);
     } catch (err) {
       console.error("Error fetching orders:", err);
       setOrders([]);
@@ -196,11 +203,10 @@ export default function AdminDashboard() {
         </thead>
         <tbody>
           {orders.length > 0 ? (
-            orders.map((order, i) => (
+            orders.map((order) => (
               <OrderRow
                 key={order._id}
                 order={order}
-                index={i + 1}
                 deleteOrder={deleteOrder}
                 products={products}
               />
@@ -294,30 +300,22 @@ export default function AdminDashboard() {
 // ==========================================
 // ORDER ROW COMPONENT WITH BARCODE
 // ==========================================
-function OrderRow({ order, index, deleteOrder, products }) {
+function OrderRow({ order, deleteOrder, products }) {
   const [open, setOpen] = useState(false);
 
   const total = Array.isArray(order.items)
     ? order.items.reduce((sum, item) => {
-      const units =
-        Number(item.quantity || 0) +
-        Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+      const units = Number(item.quantity || 0) + Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
       return sum + units * Number(item.price || 0);
     }, 0)
     : 0;
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
-
-    // LOGO
     const logo = "/zdrava.png";
     doc.addImage(logo, "PNG", 150, 10, 60, 60);
-
-    // Title
     doc.setFontSize(18);
-    doc.text(`Order #${index}`, 14, 20);
-
-    // Order details
+    doc.text(`Order #${order.orderNumber}`, 14, 20);
     doc.setFontSize(12);
     doc.text(`Agent: ${order.agentName}`, 14, 35);
     doc.text(`Magazin: ${order.magazinName}`, 14, 42);
@@ -331,11 +329,8 @@ function OrderRow({ order, index, deleteOrder, products }) {
       doc.addImage(order.signature, "PNG", 14, 88, 50, 25);
     }
 
-    // Products table for PDF
     const rows = order.items.map(item => {
-      const totalUnits =
-        Number(item.quantity || 0) +
-        Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+      const totalUnits = Number(item.quantity || 0) + Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
       return { item, totalUnits };
     });
 
@@ -351,67 +346,38 @@ function OrderRow({ order, index, deleteOrder, products }) {
         "",
       ]),
       didDrawCell: (data) => {
-        // Column index of barcode (last column)
         if (data.column.index === data.table.columns.length - 1 && data.cell.section === 'body') {
           const item = rows[data.row.index].item;
           const barcodeValue = products.find(p => p.name === item.name)?.barcode || "";
           if (!barcodeValue) return;
 
-          // Create a fresh canvas for each barcode
           const canvas = document.createElement("canvas");
-          JsBarcode(canvas, barcodeValue, {
-            format: "CODE128",
-            width: 3,        // increase width for better visibility
-            height: 40,
-            displayValue: false,
-            margin: 0
-          });
+          JsBarcode(canvas, barcodeValue, { format: "CODE128", width: 3, height: 40, displayValue: false, margin: 0 });
 
-          // Scale to fit cell width
           const cellPadding = 2;
           const scale = Math.min(1, (data.cell.width - cellPadding * 2) / canvas.width);
           const imgWidth = canvas.width * scale;
           const imgHeight = canvas.height * scale;
-
           const imgData = canvas.toDataURL("image/png");
 
-          // Draw barcode image
-          doc.addImage(
-            imgData,
-            "PNG",
-            data.cell.x + cellPadding,
-            data.cell.y + cellPadding,
-            imgWidth,
-            imgHeight
-          );
-
-          // Draw barcode number below barcode
-          const fontSize = 4;
-          doc.setFontSize(fontSize);
-          doc.text(
-            barcodeValue,
-            data.cell.x + data.cell.width / 2,
-            data.cell.y + cellPadding + imgHeight + 2,
-            { align: "center" }
-          );
+          doc.addImage(imgData, "PNG", data.cell.x + cellPadding, data.cell.y + cellPadding, imgWidth, imgHeight);
+          doc.setFontSize(4);
+          doc.text(barcodeValue, data.cell.x + data.cell.width / 2, data.cell.y + cellPadding + imgHeight + 2, { align: "center" });
         }
       }
-
-
-
     });
 
     const finalY = doc.lastAutoTable.finalY + 10;
     doc.setFontSize(14);
     doc.text(`TOTAL: ${total.toFixed(2)} RON`, 14, finalY);
 
-    doc.save(`Order_${index}.pdf`);
+    doc.save(`Order_${order.orderNumber}.pdf`);
   };
 
   return (
     <>
       <tr>
-        <td>{index}</td>
+        <td>{order.orderNumber}</td>
         <td>{order.agentName}</td>
         <td>{order.magazinName}</td>
         <td>{total.toFixed(2)} RON</td>
@@ -427,7 +393,6 @@ function OrderRow({ order, index, deleteOrder, products }) {
         </td>
       </tr>
 
-      {/* Products Table with Barcode */}
       {open && (
         <tr className="details-row">
           <td colSpan="12">
@@ -446,25 +411,12 @@ function OrderRow({ order, index, deleteOrder, products }) {
                 </thead>
                 <tbody>
                   {order.items.map((item, idx) => {
-                    const totalUnits =
-                      Number(item.quantity || 0) +
-                      Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+                    const totalUnits = Number(item.quantity || 0) + Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
                     const barcode = products.find(p => p.name === item.name)?.barcode || "";
-
                     return (
                       <tr key={idx}>
                         <td>{item.name}</td>
-                        <td>
-                          {barcode ? (
-                            <ReactBarcode
-                              value={barcode}
-                              format="CODE128"
-                              width={1.5}
-                              height={40}
-                              displayValue={true}
-                            />
-                          ) : "—"}
-                        </td>
+                        <td>{barcode ? <ReactBarcode value={barcode} format="CODE128" width={1.5} height={40} displayValue={true} /> : "—"}</td>
                         <td>{item.boxes}</td>
                         <td>{item.unitsPerBox}</td>
                         <td>{totalUnits}</td>
