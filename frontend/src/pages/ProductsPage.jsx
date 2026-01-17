@@ -9,7 +9,9 @@ export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = process.env.REACT_APP_API_URL.replace(/\/api$/, "");
+  // ✅ Safe API base for images (works locally + on Render)
+  const API_BASE =
+    (process.env.REACT_APP_API_URL || "http://localhost:5000").replace(/\/api$/, "");
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -58,13 +60,14 @@ export default function ProductsPage() {
             (product.stoc || "in stoc").trim().toLowerCase() === "out of stoc";
 
           // ---------- IMAGE ----------
-          let imageSrc = `${API_URL}/images/placeholder.png`;
+          let imageSrc = `${API_BASE}/images/placeholder.png`;
+
           if (product.image) {
             if (/^https?:\/\//i.test(product.image)) {
               imageSrc = product.image;
             } else {
-              // Use the raw filename without encodeURIComponent
-              imageSrc = `${API_URL}/images/${product.image}`;
+              // ✅ Encode filename so spaces/special chars always work
+              imageSrc = `${API_BASE}/images/${encodeURIComponent(product.image)}`;
             }
           }
 
@@ -86,7 +89,7 @@ export default function ProductsPage() {
                 }}
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = `${API_URL}/images/placeholder.png`;
+                  e.target.src = `${API_BASE}/images/placeholder.png`;
                 }}
               />
 
@@ -120,10 +123,7 @@ export default function ProductsPage() {
                 {isOutOfStock ? "OUT OF STOCK ❌" : "IN STOCK ✅"}
               </p>
 
-              <button
-                disabled={isOutOfStock}
-                onClick={() => addToCart(product)}
-              >
+              <button disabled={isOutOfStock} onClick={() => addToCart(product)}>
                 {isOutOfStock ? "Unavailable" : "Add to Order"}
               </button>
             </div>
