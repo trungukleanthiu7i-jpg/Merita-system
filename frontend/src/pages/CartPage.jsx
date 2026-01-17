@@ -6,22 +6,36 @@ import { FaTrash } from "react-icons/fa";
 import "../styles/Cartpage.scss";
 
 export default function CartPage() {
-  const { cart, removeFromCart, updateBoxes, updatePrice, clearCart, totalBoxes } =
-    useContext(CartContext);
+  const {
+    cart,
+    removeFromCart,
+    updateBoxes,
+    updatePrice,
+    clearCart,
+    totalBoxes,
+  } = useContext(CartContext);
+
   const { user } = useAuth();
   const navigate = useNavigate();
-  const API_URL = process.env.REACT_APP_API_URL;
+
+  // ✅ Safe API base (works local + deployed)
+  const API_BASE =
+    (process.env.REACT_APP_API_URL || "http://localhost:5000").replace(
+      /\/api$/,
+      ""
+    );
 
   const getItemUnits = (item) => {
     const unitsPerBox = Number(item.unitsPerBox || 1);
     const boxes = Number(item.boxes || 0);
-    const quantity = Number(item.quantity || 0);
-    return quantity + boxes * unitsPerBox;
+    return boxes * unitsPerBox;
   };
 
   const getItemTotal = (item) => {
     const pricePerUnit =
-      item.customPrice !== undefined ? Number(item.customPrice) : Number(item.price || 0);
+      item.customPrice !== undefined
+        ? Number(item.customPrice)
+        : Number(item.price || 0);
     return getItemUnits(item) * pricePerUnit;
   };
 
@@ -40,52 +54,69 @@ export default function CartPage() {
       {cart.length === 0 ? (
         <p className="empty-message">No products added yet.</p>
       ) : (
-        cart.map((item) => (
-          <div className="cart-item" key={item._id}>
-            <img
-              src={`${API_URL}/images/${item.image}`}
-              alt={item.name}
-              className="cart-item-image"
-            />
-            <div className="item-info">
-              <h3>{item.name}</h3>
+        cart.map((item) => {
+          const imageSrc = item.image
+            ? `${API_BASE}/images/${encodeURIComponent(item.image)}`
+            : `${API_BASE}/images/placeholder.png`;
 
-              <div className="inputs-row">
-                <div>
-                  <label>Boxes</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={item.boxes || 0}
-                    onChange={(e) => updateBoxes(item._id, Number(e.target.value))}
-                  />
+          return (
+            <div className="cart-item" key={item._id}>
+              <img
+                src={imageSrc}
+                alt={item.name}
+                className="cart-item-image"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = `${API_BASE}/images/placeholder.png`;
+                }}
+              />
+
+              <div className="item-info">
+                <h3>{item.name}</h3>
+
+                <div className="inputs-row">
+                  <div>
+                    <label>Boxes</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={item.boxes || 0}
+                      onChange={(e) =>
+                        updateBoxes(item._id, Number(e.target.value))
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <label>Price / unit</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={
+                        item.customPrice !== undefined
+                          ? item.customPrice
+                          : item.price || 0
+                      }
+                      onChange={(e) =>
+                        updatePrice(item._id, Number(e.target.value))
+                      }
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label>Price / unit</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={
-                      item.customPrice !== undefined
-                        ? item.customPrice
-                        : item.price || 0
-                    }
-                    onChange={(e) => updatePrice(item._id, Number(e.target.value))}
-                  />
-                </div>
+                <p className="price">
+                  Item Total: {getItemTotal(item).toFixed(2)} RON
+                </p>
               </div>
 
-              <p className="price">Item Total: {getItemTotal(item).toFixed(2)} RON</p>
+              <FaTrash
+                className="delete-icon"
+                onClick={() => removeFromCart(item._id)}
+              />
             </div>
-
-            <FaTrash
-              className="delete-icon"
-              onClick={() => removeFromCart(item._id)}
-            />
-          </div>
-        ))
+          );
+        })
       )}
 
       {cart.length > 0 && (
