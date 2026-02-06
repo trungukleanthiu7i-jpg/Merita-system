@@ -269,7 +269,7 @@ export default function AdminDashboard() {
 
         <div className="agent-stats">
           <p>Total Orders: {agentStats.totalOrders}</p>
-          <p>Total Revenue: {agentStats.totalRevenue.toFixed(2)} RON</p>
+          <p>Total Revenue: {agentStats.totalRevenue.toFixed(2)} Lek</p>
 
           {Object.keys(agentStats.products).length > 0 && (
             <table className="stats-table">
@@ -342,7 +342,7 @@ function OrderRow({ order, deleteOrder, products }) {
         r.item.boxes,
         r.item.unitsPerBox,
         r.totalUnits,
-        (r.totalUnits * Number(r.item.price || 0)).toFixed(2) + " RON",
+        (r.totalUnits * Number(r.item.price || 0)).toFixed(2) + " Lek",
         "",
       ]),
       didDrawCell: (data) => {
@@ -369,7 +369,7 @@ function OrderRow({ order, deleteOrder, products }) {
 
     const finalY = doc.lastAutoTable.finalY + 10;
     doc.setFontSize(14);
-    doc.text(`TOTAL: ${total.toFixed(2)} RON`, 14, finalY);
+    doc.text(`TOTAL: ${total.toFixed(2)} Lek`, 14, finalY);
 
     doc.save(`Order_${order.orderNumber}.pdf`);
   };
@@ -380,7 +380,7 @@ function OrderRow({ order, deleteOrder, products }) {
         <td>{order.orderNumber}</td>
         <td>{order.agentName}</td>
         <td>{order.magazinName}</td>
-        <td>{total.toFixed(2)} RON</td>
+        <td>{total.toFixed(2)} Lek</td>
         <td>{new Date(order.createdAt).toLocaleDateString()}</td>
         <td>{order.cui}</td>
         <td>{order.address}</td>
@@ -420,7 +420,7 @@ function OrderRow({ order, deleteOrder, products }) {
                         <td>{item.boxes}</td>
                         <td>{item.unitsPerBox}</td>
                         <td>{totalUnits}</td>
-                        <td>{(totalUnits * Number(item.price || 0)).toFixed(2)} RON</td>
+                        <td>{(totalUnits * Number(item.price || 0)).toFixed(2)} Lek</td>
                       </tr>
                     );
                   })}

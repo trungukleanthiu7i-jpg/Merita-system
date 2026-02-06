@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 import axiosClient from "../api/axiosClient";
 import "../styles/AdminStats.scss";
 
@@ -8,7 +8,10 @@ export default function AdminStats() {
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [productStats, setProductStats] = useState({ mostSold: [], leastSold: [] });
+  const [productStats, setProductStats] = useState({
+    mostSold: [],
+    leastSold: [],
+  });
   const [trendStats, setTrendStats] = useState({
     boxesChange: 0,
     revenueChange: 0,
@@ -38,7 +41,7 @@ export default function AdminStats() {
   // ================================
   // FILTER ORDERS BY DATE
   // ================================
-  const filteredOrders = orders.filter(order => {
+  const filteredOrders = orders.filter((order) => {
     const orderDate = new Date(order.createdAt);
     if (startDate && orderDate < new Date(startDate)) return false;
     if (endDate && orderDate > new Date(endDate)) return false;
@@ -56,14 +59,16 @@ export default function AdminStats() {
     }
 
     const productCount = {};
-    filteredOrders.forEach(order => {
-      (order.items || []).forEach(item => {
+    filteredOrders.forEach((order) => {
+      (order.items || []).forEach((item) => {
         const boxes = Number(item.boxes || 0);
         productCount[item.name] = (productCount[item.name] || 0) + boxes;
       });
     });
 
-    const sortedProducts = Object.entries(productCount).sort((a, b) => b[1] - a[1]);
+    const sortedProducts = Object.entries(productCount).sort(
+      (a, b) => b[1] - a[1]
+    );
     setProductStats({
       mostSold: sortedProducts.slice(0, 5),
       leastSold: sortedProducts.slice(-5).reverse(),
@@ -76,13 +81,15 @@ export default function AdminStats() {
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(now.getMonth() - 1);
 
-    let boxesCurrentWeek = 0, boxesPreviousWeek = 0;
-    let revenueCurrentMonth = 0, revenuePreviousMonth = 0;
+    let boxesCurrentWeek = 0,
+      boxesPreviousWeek = 0;
+    let revenueCurrentMonth = 0,
+      revenuePreviousMonth = 0;
     const productChangeMap = {};
 
-    filteredOrders.forEach(order => {
+    filteredOrders.forEach((order) => {
       const orderDate = new Date(order.createdAt);
-      (order.items || []).forEach(item => {
+      (order.items || []).forEach((item) => {
         const boxes = Number(item.boxes || 0);
         const unitsPerBox = Number(item.unitsPerBox || 0);
         const quantity = Number(item.quantity || 0);
@@ -95,17 +102,28 @@ export default function AdminStats() {
         if (orderDate >= oneMonthAgo) revenueCurrentMonth += revenue;
         else revenuePreviousMonth += revenue;
 
-        if (!productChangeMap[item.name]) productChangeMap[item.name] = { current: 0, previous: 0 };
+        if (!productChangeMap[item.name])
+          productChangeMap[item.name] = { current: 0, previous: 0 };
         if (orderDate >= oneWeekAgo) productChangeMap[item.name].current += boxes;
         else productChangeMap[item.name].previous += boxes;
       });
     });
 
     const boxesChange = boxesPreviousWeek
-      ? Number((((boxesCurrentWeek - boxesPreviousWeek) / boxesPreviousWeek) * 100).toFixed(1))
+      ? Number(
+          (
+            ((boxesCurrentWeek - boxesPreviousWeek) / boxesPreviousWeek) *
+            100
+          ).toFixed(1)
+        )
       : 0;
     const revenueChange = revenuePreviousMonth
-      ? Number((((revenueCurrentMonth - revenuePreviousMonth) / revenuePreviousMonth) * 100).toFixed(1))
+      ? Number(
+          (
+            ((revenueCurrentMonth - revenuePreviousMonth) / revenuePreviousMonth) *
+            100
+          ).toFixed(1)
+        )
       : 0;
 
     const trendingProducts = Object.entries(productChangeMap)
@@ -126,7 +144,8 @@ export default function AdminStats() {
   const totalOrders = filteredOrders.length;
   const totalBoxesSold = filteredOrders.reduce(
     (sum, order) =>
-      sum + (order.items || []).reduce((s, item) => s + Number(item.boxes || 0), 0),
+      sum +
+      (order.items || []).reduce((s, item) => s + Number(item.boxes || 0), 0),
     0
   );
   const totalRevenue = filteredOrders.reduce(
@@ -156,7 +175,9 @@ export default function AdminStats() {
         role="button"
         tabIndex={0}
         onClick={handleBack}
-        onKeyPress={(e) => { if (e.key === "Enter") handleBack(); }}
+        onKeyPress={(e) => {
+          if (e.key === "Enter") handleBack();
+        }}
         aria-label="Back to previous page"
       >
         ← Back
@@ -167,11 +188,19 @@ export default function AdminStats() {
       <div className="date-filters">
         <label>
           From:
-          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
         </label>
         <label>
           To:
-          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+          />
         </label>
       </div>
 
@@ -185,7 +214,7 @@ export default function AdminStats() {
               : `(${trendStats.boxesChange}% vs last week)`}
           </p>
           <p>
-            Total Revenue: {totalRevenue.toFixed(2)} RON{" "}
+            Total Revenue: {totalRevenue.toFixed(2)} {"LEK"}{" "}
             {trendStats.revenueChange >= 0
               ? `(+${trendStats.revenueChange}% vs last month)`
               : `(${trendStats.revenueChange}% vs last month)`}
@@ -198,7 +227,9 @@ export default function AdminStats() {
             <h4>Most Sold Products</h4>
             <ul>
               {productStats.mostSold.map(([name, boxes], idx) => (
-                <li key={idx}>{name} - {boxes} boxes</li>
+                <li key={idx}>
+                  {name} - {boxes} boxes
+                </li>
               ))}
             </ul>
           </div>
@@ -206,7 +237,9 @@ export default function AdminStats() {
             <h4>Least Sold Products</h4>
             <ul>
               {productStats.leastSold.map(([name, boxes], idx) => (
-                <li key={idx}>{name} - {boxes} boxes</li>
+                <li key={idx}>
+                  {name} - {boxes} boxes
+                </li>
               ))}
             </ul>
           </div>
@@ -218,7 +251,8 @@ export default function AdminStats() {
             <div key={idx} className="stat-box">
               <h4>{p.name}</h4>
               <p style={{ color: p.direction === "up" ? "green" : "red" }}>
-                {p.change > 0 ? `+${p.change}%` : `${p.change}%`} {p.direction === "up" ? "⬆️" : "⬇️"}
+                {p.change > 0 ? `+${p.change}%` : `${p.change}%`}{" "}
+                {p.direction === "up" ? "⬆️" : "⬇️"}
               </p>
             </div>
           ))}

@@ -25,7 +25,7 @@ export default function ProductCard({ product }) {
 
       <h3>{name}</h3>
 
-      <p><strong>Price:</strong> {price} RON</p>
+      <p><strong>Price:</strong> {price} <Lek></Lek></p>
       <p><strong>Units per box:</strong> {unitsPerBox}</p>
 
       <p className={isOutOfStock ? "out" : "in"}>

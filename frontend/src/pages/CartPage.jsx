@@ -106,7 +106,7 @@ export default function CartPage() {
                 </div>
 
                 <p className="price">
-                  Item Total: {getItemTotal(item).toFixed(2)} RON
+                  Item Total: {getItemTotal(item).toFixed(2)} {"LEK"}
                 </p>
               </div>
 
@@ -130,7 +130,7 @@ export default function CartPage() {
               <strong>Total units (with boxes):</strong> {totalUnits}
             </p>
             <p>
-              <strong>Total price:</strong> {totalOrder.toFixed(2)} RON
+              <strong>Total price:</strong> {totalOrder.toFixed(2)} {"LEK"}
             </p>
           </div>
 

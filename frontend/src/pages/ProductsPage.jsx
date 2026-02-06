@@ -10,8 +10,10 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
 
   // ✅ Safe API base for images (works locally + on Render)
-  const API_BASE =
-    (process.env.REACT_APP_API_URL || "http://localhost:5000").replace(/\/api$/, "");
+  const API_BASE = (process.env.REACT_APP_API_URL || "http://localhost:5000").replace(
+    /\/api$/,
+    ""
+  );
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -96,7 +98,8 @@ export default function ProductsPage() {
               <h3>{product.name || "Unnamed product"}</h3>
 
               <p>
-                <strong>Price:</strong> {Number(product.price) || 0} RON
+                <strong>Price:</strong> {Number(product.price) || 0}{" "}
+                <span>LEK</span>
               </p>
 
               <p>
