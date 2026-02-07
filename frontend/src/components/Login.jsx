@@ -13,18 +13,18 @@ export default function Login() {
     setError("");
 
     if (!username || !password) {
-      setError("Te rog introdu username și parola!");
+      setError("Ju lutem shkruani username dhe password!");
       return;
     }
 
     try {
       const success = await login(username, password);
       if (!success) {
-        setError("Username sau parolă greșită!");
+        setError("Username ose password i gabuar!");
       }
     } catch (err) {
       console.error("Login error:", err);
-      setError("A apărut o eroare la autentificare.");
+      setError("Ka ndodhur një gabim gjatë autentifikimit.");
     }
   };
 
@@ -45,8 +45,8 @@ export default function Login() {
         {/* Logo + Welcome */}
         <div className="logo-section">
           <img src="/zdrava.png" alt="Zdrava Logo" className="logo" />
-          <h1>Bine ai revenit!</h1>
-          <p>Autentifică-te pentru a accesa sistemul</p>
+          <h1>Mirë se erdhët!</h1>
+          <p>Identifikohuni për të hyrë në sistem</p>
         </div>
 
         {/* Login Form */}
@@ -61,14 +61,14 @@ export default function Login() {
 
           <input
             type="password"
-            placeholder="Parola"
+            placeholder="Passwordi"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
 
           <button type="submit" disabled={loading}>
-            {loading ? "Se încarcă..." : "Login"}
+            {loading ? "Duke u ngarkuar..." : "Hyr"}
           </button>
         </form>
 

@@ -37,7 +37,7 @@ export default function ProductsPage() {
   if (loading) {
     return (
       <p style={{ textAlign: "center", marginTop: "50px" }}>
-        Loading products...
+        Duke u ngarkuar produktet...
       </p>
     );
   }
@@ -45,14 +45,14 @@ export default function ProductsPage() {
   if (!products.length) {
     return (
       <p style={{ textAlign: "center", marginTop: "50px" }}>
-        No products available.
+        Nuk ka produkte të disponueshme.
       </p>
     );
   }
 
   return (
     <div className="products-page">
-      <h1>Products</h1>
+      <h1>Produktet</h1>
 
       <div className="products-list">
         {products.map((product) => {
@@ -68,7 +68,6 @@ export default function ProductsPage() {
             if (/^https?:\/\//i.test(product.image)) {
               imageSrc = product.image;
             } else {
-              // ✅ Encode filename so spaces/special chars always work
               imageSrc = `${API_BASE}/images/${encodeURIComponent(product.image)}`;
             }
           }
@@ -83,7 +82,7 @@ export default function ProductsPage() {
             <div className="product-card" key={product._id}>
               <img
                 src={imageSrc}
-                alt={product.name || "Unnamed product"}
+                alt={product.name || "Produkt pa emër"}
                 style={{
                   width: "100%",
                   height: "450px",
@@ -95,15 +94,16 @@ export default function ProductsPage() {
                 }}
               />
 
-              <h3>{product.name || "Unnamed product"}</h3>
+              <h3>{product.name || "Produkt pa emër"}</h3>
 
               <p>
-                <strong>Price:</strong> {Number(product.price) || 0}{" "}
+                <strong>Çmimi:</strong> {Number(product.price) || 0}{" "}
                 <span>LEK</span>
               </p>
 
               <p>
-                <strong>Units per box:</strong> {Number(product.unitsPerBox) || 1}
+                <strong>Copë për kuti:</strong>{" "}
+                {Number(product.unitsPerBox) || 1}
               </p>
 
               {/* BARCODE */}
@@ -118,16 +118,23 @@ export default function ProductsPage() {
                     height={55}
                   />
                 ) : (
-                  <p style={{ fontSize: "12px", opacity: 0.6 }}>No barcode</p>
+                  <p style={{ fontSize: "12px", opacity: 0.6 }}>
+                    Nuk ka barkod
+                  </p>
                 )}
               </div>
 
               <p className={isOutOfStock ? "out" : "in"}>
-                {isOutOfStock ? "OUT OF STOCK ❌" : "IN STOCK ✅"}
+                {isOutOfStock
+                  ? "JASHTË STOKUT ❌"
+                  : "NË STOK ✅"}
               </p>
 
-              <button disabled={isOutOfStock} onClick={() => addToCart(product)}>
-                {isOutOfStock ? "Unavailable" : "Add to Order"}
+              <button
+                disabled={isOutOfStock}
+                onClick={() => addToCart(product)}
+              >
+                {isOutOfStock ? "I padisponueshëm" : "Shto në porosi"}
               </button>
             </div>
           );

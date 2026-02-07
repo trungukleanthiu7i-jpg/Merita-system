@@ -49,10 +49,12 @@ export default function CartPage() {
 
   return (
     <div className="cart-page">
-      <h1>Your Order</h1>
+      <h1>Porosia juaj</h1>
 
       {cart.length === 0 ? (
-        <p className="empty-message">No products added yet.</p>
+        <p className="empty-message">
+          Ende nuk janë shtuar produkte.
+        </p>
       ) : (
         cart.map((item) => {
           const imageSrc = item.image
@@ -76,7 +78,7 @@ export default function CartPage() {
 
                 <div className="inputs-row">
                   <div>
-                    <label>Boxes</label>
+                    <label>Kuti</label>
                     <input
                       type="number"
                       min="0"
@@ -88,7 +90,7 @@ export default function CartPage() {
                   </div>
 
                   <div>
-                    <label>Price / unit</label>
+                    <label>Çmimi / njësi</label>
                     <input
                       type="number"
                       step="0.01"
@@ -106,13 +108,14 @@ export default function CartPage() {
                 </div>
 
                 <p className="price">
-                  Item Total: {getItemTotal(item).toFixed(2)} {"LEK"}
+                  Totali i produktit: {getItemTotal(item).toFixed(2)} LEK
                 </p>
               </div>
 
               <FaTrash
                 className="delete-icon"
                 onClick={() => removeFromCart(item._id)}
+                title="Fshij produktin"
               />
             </div>
           );
@@ -122,25 +125,28 @@ export default function CartPage() {
       {cart.length > 0 && (
         <>
           <div className="summary-box">
-            <h2>Order Summary</h2>
+            <h2>Përmbledhje e porosisë</h2>
+
             <p>
-              <strong>Total boxes:</strong> {totalBoxes}
+              <strong>Totali i kutive:</strong> {totalBoxes}
             </p>
+
             <p>
-              <strong>Total units (with boxes):</strong> {totalUnits}
+              <strong>Totali i njësive:</strong> {totalUnits}
             </p>
+
             <p>
-              <strong>Total price:</strong> {totalOrder.toFixed(2)} {"LEK"}
+              <strong>Çmimi total:</strong> {totalOrder.toFixed(2)} LEK
             </p>
           </div>
 
           <div className="actions-row">
             <button className="clear-all-btn" onClick={clearCart}>
-              Șterge tot
+              Fshij të gjitha
             </button>
 
             <button onClick={handleProceedToAgentInfo} className="submit-btn">
-              Trimis
+              Vazhdo
             </button>
           </div>
         </>
