@@ -13,24 +13,24 @@ export default function Login() {
     setError("");
 
     if (!username || !password) {
-      setError("Ju lutem shkruani username dhe password!");
+      setError("Vă rugăm să completați username-ul și parola!");
       return;
     }
 
     try {
       const success = await login(username, password);
       if (!success) {
-        setError("Username ose password i gabuar!");
+        setError("Username-ul sau parola este incorectă!");
       }
     } catch (err) {
-      console.error("Login error:", err);
-      setError("Ka ndodhur një gabim gjatë autentifikimit.");
+      console.error("Eroare la autentificare:", err);
+      setError("A apărut o eroare la autentificare.");
     }
   };
 
   return (
     <div className="login-page">
-      {/* Background shapes */}
+      {/* Elemente de fundal */}
       <div className="background-shapes">
         <span></span>
         <span></span>
@@ -39,17 +39,17 @@ export default function Login() {
         <span></span>
       </div>
 
-      {/* Login container */}
+      {/* Containerul de login */}
       <div className="login-container">
 
-        {/* Logo + Welcome */}
+        {/* Logo + Mesaj de bun venit */}
         <div className="logo-section">
-          <img src="/zdrava.png" alt="Zdrava Logo" className="logo" />
-          <h1>Mirë se erdhët!</h1>
-          <p>Identifikohuni për të hyrë në sistem</p>
+          <img src="/zdrava.png" alt="Logo Zdrava" className="logo" />
+          <h1>Bine ați venit!</h1>
+          <p>Autentificați-vă pentru a accesa sistemul</p>
         </div>
 
-        {/* Login Form */}
+        {/* Formular de login */}
         <form onSubmit={handleSubmit}>
           <input
             type="text"
@@ -61,18 +61,18 @@ export default function Login() {
 
           <input
             type="password"
-            placeholder="Passwordi"
+            placeholder="Parolă"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
 
           <button type="submit" disabled={loading}>
-            {loading ? "Duke u ngarkuar..." : "Hyr"}
+            {loading ? "Se încarcă..." : "Conectare"}
           </button>
         </form>
 
-        {/* Error message */}
+        {/* Mesaj de eroare */}
         {error && <p className="error-message">{error}</p>}
       </div>
     </div>

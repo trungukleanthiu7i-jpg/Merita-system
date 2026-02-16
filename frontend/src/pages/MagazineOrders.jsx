@@ -11,7 +11,7 @@ const MagazineOrders = () => {
   const [productStats, setProductStats] = useState({});
 
   useEffect(() => {
-    // 🔥 ADD AUTH TOKEN HERE
+    // 🔥 ADAUGĂ TOKEN DE AUTENTIFICARE AICI
     const token = localStorage.getItem("token");
     axiosClient.defaults.headers.common["Authorization"] = token
       ? `Bearer ${token}`
@@ -27,16 +27,16 @@ const MagazineOrders = () => {
         ];
         setMagazines(names);
       } catch (err) {
-        console.error("Error fetching magazines:", err);
+        console.error("Eroare la preluarea magazinelor:", err);
       }
     };
 
     fetchMagazines();
   }, []);
 
-  // Fetch filtered orders
+  // Preluare comenzi filtrate
   const fetchOrders = async () => {
-    if (!selectedMagazine) return alert("Please select a magazine");
+    if (!selectedMagazine) return alert("Vă rugăm să selectați un magazin");
 
     try {
       const res = await axiosClient.get("/admin/magazine-orders", {
@@ -49,7 +49,7 @@ const MagazineOrders = () => {
       const stats = {};
       ordersData.forEach(order => {
         (order.items || []).forEach(item => {
-          const name = item.name || "Unnamed Product";
+          const name = item.name || "Produs fără nume";
           const totalUnits =
             Number(item.quantity || 0) +
             Number(item.boxes || 0) * Number(item.unitsPerBox || 1);
@@ -60,23 +60,23 @@ const MagazineOrders = () => {
 
       setProductStats(stats);
     } catch (err) {
-      console.error("Error fetching magazine orders:", err);
+      console.error("Eroare la preluarea comenzilor magazinului:", err);
       setProductStats({});
     }
   };
 
   return (
     <div>
-      <h2>Magazine Orders</h2>
+      <h2>Comenzile Magazinelor</h2>
 
       <div style={{ marginBottom: "20px" }}>
         <label>
-          Magazine:{" "}
+          Magazin:{" "}
           <select
             value={selectedMagazine}
             onChange={(e) => setSelectedMagazine(e.target.value)}
           >
-            <option value="">-- Select Magazine --</option>
+            <option value="">-- Selectați un magazin --</option>
             {magazines.map((name) => (
               <option key={name} value={name}>{name}</option>
             ))}
@@ -84,7 +84,7 @@ const MagazineOrders = () => {
         </label>
 
         <label style={{ marginLeft: "20px" }}>
-          Start Date:{" "}
+          Data început:{" "}
           <input
             type="date"
             value={startDate}
@@ -93,7 +93,7 @@ const MagazineOrders = () => {
         </label>
 
         <label style={{ marginLeft: "20px" }}>
-          End Date:{" "}
+          Data sfârșit:{" "}
           <input
             type="date"
             value={endDate}
@@ -105,22 +105,22 @@ const MagazineOrders = () => {
           onClick={fetchOrders}
           style={{ marginLeft: "20px", padding: "5px 10px" }}
         >
-          Show Orders
+          Afișează comenzile
         </button>
       </div>
 
-      <h3>Product Stats</h3>
+      <h3>Statistici Produse</h3>
 
       <table border="1" cellPadding="5">
         <thead>
           <tr>
-            <th>Product Name</th>
-            <th>Total Units Sold</th>
+            <th>Nume produs</th>
+            <th>Total unități vândute</th>
           </tr>
         </thead>
         <tbody>
           {Object.keys(productStats).length === 0 ? (
-            <tr><td colSpan="2">No orders found</td></tr>
+            <tr><td colSpan="2">Nu s-au găsit comenzi</td></tr>
           ) : (
             Object.entries(productStats).map(([name, qty]) => (
               <tr key={name}>

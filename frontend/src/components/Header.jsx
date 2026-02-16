@@ -6,34 +6,34 @@ import "../styles/Header.scss";
 
 export default function Header() {
   const { totalBoxes } = useContext(CartContext);
-  const { user, logout } = useAuth(); // <-- use logout from context
+  const { user, logout } = useAuth(); // <-- folosește funcția logout din context
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Call the logout function from AuthContext
+    // Apelează funcția logout din AuthContext
     logout();
 
-    // Optional: remove token from localStorage if used
+    // Optional: șterge token-ul din localStorage dacă este folosit
     localStorage.removeItem("userToken");
 
-    // Redirect to login page
+    // Redirecționează către pagina de autentificare
     navigate("/", { replace: true });
   };
 
   return (
     <div className="header">
-      <Link to="/">Products</Link>
+      <Link to="/">Produse</Link>
 
       {user?.role !== "admin" && (
         <div className="orders-link">
-          <Link to="/cart">Orders</Link>
+          <Link to="/cart">Comenzi</Link>
           {totalBoxes > 0 && <span className="badge">{totalBoxes}</span>}
         </div>
       )}
 
       {user && (
         <button className="logout-btn" onClick={handleLogout}>
-          Logout
+          Ieșire
         </button>
       )}
     </div>

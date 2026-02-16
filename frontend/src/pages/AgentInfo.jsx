@@ -30,12 +30,12 @@ export default function AgentInfo() {
       !address.trim() ||
       !responsiblePerson.trim()
     ) {
-      toast.error("Plotësoni të gjitha fushat e detyrueshme!");
+      toast.error("Vă rugăm să completați toate câmpurile obligatorii!");
       return;
     }
 
     if (cart.length === 0) {
-      toast.error("Shporta është bosh!");
+      toast.error("Coșul este gol!");
       return;
     }
 
@@ -43,13 +43,13 @@ export default function AgentInfo() {
     if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
       signatureData = sigCanvas.current.getCanvas().toDataURL("image/png");
     } else {
-      toast.error("Nënshkrimi është i detyrueshëm!");
+      toast.error("Nesemnatul este obligatoriu!");
       return;
     }
 
     const items = cart.map((item) => ({
       _id: item._id || item.product?._id,
-      name: item.name || item.product?.name || "Produkt pa emër",
+      name: item.name || item.product?.name || "Produs fără nume",
       boxes: Number(item.boxes || 0),
       quantity: Number(item.quantity || 0),
       price: Number(item.customPrice ?? item.price ?? 0),
@@ -58,7 +58,7 @@ export default function AgentInfo() {
 
     const invalidItem = items.find((i) => !i._id);
     if (invalidItem) {
-      toast.error(`Produkt i pavlefshëm në shportë: ${invalidItem.name}`);
+      toast.error(`Produs invalid în coș: ${invalidItem.name}`);
       return;
     }
 
@@ -82,7 +82,7 @@ export default function AgentInfo() {
       const response = await axiosClient.post("/orders/create", data);
 
       toast.success(
-        response.data?.message || "Porosia u dërgua me sukses!"
+        response.data?.message || "Comanda a fost trimisă cu succes!"
       );
 
       clearCart();
@@ -95,9 +95,9 @@ export default function AgentInfo() {
 
       setTimeout(() => navigate("/"), 1500);
     } catch (err) {
-      console.error("Error sending order:", err);
+      console.error("Eroare la trimiterea comenzii:", err);
       toast.error(
-        err.response?.data?.message || "Dërgimi i porosisë dështoi!"
+        err.response?.data?.message || "Trimiterea comenzii a eșuat!"
       );
     } finally {
       setLoading(false);
@@ -108,42 +108,42 @@ export default function AgentInfo() {
 
   return (
     <div className="agent-info">
-      <h2>Plotësoni detajet e porosisë</h2>
+      <h2>Completați detaliile comenzii</h2>
 
       <div className="form-container">
         <input
           type="text"
-          placeholder="Emri i agjentit"
+          placeholder="Nume agent"
           value={agentName}
           onChange={(e) => setAgentName(e.target.value)}
         />
         <input
           type="text"
-          placeholder="Emri i dyqanit"
+          placeholder="Nume magazin"
           value={magazinName}
           onChange={(e) => setMagazinName(e.target.value)}
         />
         <input
           type="text"
-          placeholder="NIPT"
+          placeholder="CUI/NIPT"
           value={cui}
           onChange={(e) => setCui(e.target.value)}
         />
         <input
           type="text"
-          placeholder="Adresa e dorëzimit"
+          placeholder="Adresa de livrare"
           value={address}
           onChange={(e) => setAddress(e.target.value)}
         />
         <input
           type="text"
-          placeholder="Personi përgjegjës"
+          placeholder="Persoana responsabilă"
           value={responsiblePerson}
           onChange={(e) => setResponsiblePerson(e.target.value)}
         />
 
         <div className="signature-container">
-          <label>Nënshkrimi:</label>
+          <label>Nesemnat:</label>
           <SignatureCanvas
             ref={sigCanvas}
             penColor="black"
@@ -155,16 +155,16 @@ export default function AgentInfo() {
             }}
           />
           <button type="button" onClick={clearSignature}>
-            Fshi nënshkrimin
+            Șterge semnătura
           </button>
         </div>
 
         <button className="submit-btn" onClick={sendOrder} disabled={loading}>
-          {loading ? "Duke u dërguar..." : "Dërgo"}
+          {loading ? "Se trimite..." : "Trimite comanda"}
         </button>
       </div>
 
-      {/* ✅ ToastContainer displays the popup notifications */}
+      {/* ✅ ToastContainer afișează notificările popup */}
       <ToastContainer
         position="top-center"
         autoClose={3000}

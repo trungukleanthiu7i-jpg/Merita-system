@@ -21,7 +21,7 @@ export default function AdminStats() {
   const [endDate, setEndDate] = useState("");
 
   // ================================
-  // FETCH ORDERS
+  // PRELUARE POROSITE
   // ================================
   useEffect(() => {
     const fetchOrders = async () => {
@@ -30,7 +30,7 @@ export default function AdminStats() {
         const data = Array.isArray(res.data) ? res.data : res.data.orders || [];
         setOrders(data);
       } catch (err) {
-        console.error("Error fetching orders:", err);
+        console.error("Eroare la preluarea porosive:", err);
       } finally {
         setLoading(false);
       }
@@ -39,7 +39,7 @@ export default function AdminStats() {
   }, []);
 
   // ================================
-  // FILTER ORDERS BY DATE
+  // FILTRARE POROSITE DUPĂ DATĂ
   // ================================
   const filteredOrders = orders.filter((order) => {
     const orderDate = new Date(order.createdAt);
@@ -49,7 +49,7 @@ export default function AdminStats() {
   });
 
   // ================================
-  // COMPUTE STATISTICS
+  // CALCUL STATISTICI
   // ================================
   useEffect(() => {
     if (!filteredOrders.length) {
@@ -74,7 +74,7 @@ export default function AdminStats() {
       leastSold: sortedProducts.slice(-5).reverse(),
     });
 
-    // Trending products & percentage changes
+    // Produse în trend & modificări procentuale
     const now = new Date();
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(now.getDate() - 7);
@@ -139,7 +139,7 @@ export default function AdminStats() {
     setTrendStats({ boxesChange, revenueChange, trendingProducts });
   }, [filteredOrders]);
 
-  if (loading) return <p style={{ textAlign: "center" }}>Loading statistics...</p>;
+  if (loading) return <p style={{ textAlign: "center" }}>Se încarcă statisticile...</p>;
 
   const totalOrders = filteredOrders.length;
   const totalBoxesSold = filteredOrders.reduce(
@@ -162,10 +162,10 @@ export default function AdminStats() {
   );
 
   // ================================
-  // BACK BUTTON HANDLER
+  // BUTON ÎNAPOI
   // ================================
   const handleBack = () => {
-    navigate(-1); // Always go to the previous page
+    navigate(-1); // Mergi întotdeauna la pagina precedentă
   };
 
   return (
@@ -178,16 +178,16 @@ export default function AdminStats() {
         onKeyPress={(e) => {
           if (e.key === "Enter") handleBack();
         }}
-        aria-label="Back to previous page"
+        aria-label="Înapoi la pagina precedentă"
       >
-        ← Back
+        ← Înapoi
       </div>
 
-      <h1>Admin Statistics</h1>
+      <h1>Statistici Administrator</h1>
 
       <div className="date-filters">
         <label>
-          From:
+          De la:
           <input
             type="date"
             value={startDate}
@@ -195,7 +195,7 @@ export default function AdminStats() {
           />
         </label>
         <label>
-          To:
+          Până la:
           <input
             type="date"
             value={endDate}
@@ -206,46 +206,46 @@ export default function AdminStats() {
 
       <div className="statistics-section">
         <div className="main-stats">
-          <p>Total Orders: {totalOrders}</p>
+          <p>Număr total de porosi: {totalOrders}</p>
           <p>
-            Total Boxes Sold: {totalBoxesSold}{" "}
+            Total Kuti vândute: {totalBoxesSold}{" "}
             {trendStats.boxesChange >= 0
-              ? `(+${trendStats.boxesChange}% vs last week)`
-              : `(${trendStats.boxesChange}% vs last week)`}
+              ? `(+${trendStats.boxesChange}% față de săptămâna trecută)`
+              : `(${trendStats.boxesChange}% față de săptămâna trecută)`}
           </p>
           <p>
-            Total Revenue: {totalRevenue.toFixed(2)} {"LEK"}{" "}
+            Venit total: {totalRevenue.toFixed(2)} RON{" "}
             {trendStats.revenueChange >= 0
-              ? `(+${trendStats.revenueChange}% vs last month)`
-              : `(${trendStats.revenueChange}% vs last month)`}
+              ? `(+${trendStats.revenueChange}% față de luna trecută)`
+              : `(${trendStats.revenueChange}% față de luna trecută)`}
           </p>
         </div>
 
-        <h3 className="product-stats-title">Product Stats (by boxes sold)</h3>
+        <h3 className="product-stats-title">Statistici Produse (după kutii vândute)</h3>
         <div className="product-stats">
           <div className="stat-box">
-            <h4>Most Sold Products</h4>
+            <h4>Produse cele mai vândute</h4>
             <ul>
               {productStats.mostSold.map(([name, boxes], idx) => (
                 <li key={idx}>
-                  {name} - {boxes} boxes
+                  {name} - {boxes} kutii
                 </li>
               ))}
             </ul>
           </div>
           <div className="stat-box">
-            <h4>Least Sold Products</h4>
+            <h4>Produse cele mai puțin vândute</h4>
             <ul>
               {productStats.leastSold.map(([name, boxes], idx) => (
                 <li key={idx}>
-                  {name} - {boxes} boxes
+                  {name} - {boxes} kutii
                 </li>
               ))}
             </ul>
           </div>
         </div>
 
-        <h3 className="product-stats-title">Trending Products</h3>
+        <h3 className="product-stats-title">Produse în trend</h3>
         <div className="product-stats">
           {trendStats.trendingProducts.map((p, idx) => (
             <div key={idx} className="stat-box">

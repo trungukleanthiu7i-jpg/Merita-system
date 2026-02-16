@@ -9,7 +9,7 @@ export default function ProductsPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Safe API base for images (works locally + on Render)
+  // ✅ API sigur pentru imagini (local + Render)
   const API_BASE = (process.env.REACT_APP_API_URL || "http://localhost:5000").replace(
     /\/api$/,
     ""
@@ -24,7 +24,7 @@ export default function ProductsPage() {
           : res.data.products || [];
         setProducts(productsData);
       } catch (err) {
-        console.error("Error fetching products:", err);
+        console.error("Eroare la preluarea produselor:", err);
         setProducts([]);
       } finally {
         setLoading(false);
@@ -37,7 +37,7 @@ export default function ProductsPage() {
   if (loading) {
     return (
       <p style={{ textAlign: "center", marginTop: "50px" }}>
-        Duke u ngarkuar produktet...
+        Se încarcă produsele...
       </p>
     );
   }
@@ -45,23 +45,23 @@ export default function ProductsPage() {
   if (!products.length) {
     return (
       <p style={{ textAlign: "center", marginTop: "50px" }}>
-        Nuk ka produkte të disponueshme.
+        Nu există produse disponibile.
       </p>
     );
   }
 
   return (
     <div className="products-page">
-      <h1>Produktet</h1>
+      <h1>Produse</h1>
 
       <div className="products-list">
         {products.map((product) => {
           if (!product || !product._id) return null;
 
           const isOutOfStock =
-            (product.stoc || "in stoc").trim().toLowerCase() === "out of stoc";
+            (product.stoc || "în stoc").trim().toLowerCase() === "out of stoc";
 
-          // ---------- IMAGE ----------
+          // ---------- IMAGINE ----------
           let imageSrc = `${API_BASE}/images/placeholder.png`;
 
           if (product.image) {
@@ -82,7 +82,7 @@ export default function ProductsPage() {
             <div className="product-card" key={product._id}>
               <img
                 src={imageSrc}
-                alt={product.name || "Produkt pa emër"}
+                alt={product.name || "Produs fără nume"}
                 style={{
                   width: "100%",
                   height: "450px",
@@ -94,15 +94,15 @@ export default function ProductsPage() {
                 }}
               />
 
-              <h3>{product.name || "Produkt pa emër"}</h3>
+              <h3>{product.name || "Produs fără nume"}</h3>
 
               <p>
-                <strong>Çmimi:</strong> {Number(product.price) || 0}{" "}
-                <span>LEK</span>
+                <strong>Preț:</strong> {Number(product.price) || 0}{" "}
+                <span>RON</span>
               </p>
 
               <p>
-                <strong>Copë për kuti:</strong>{" "}
+                <strong>Unități per box:</strong>{" "}
                 {Number(product.unitsPerBox) || 1}
               </p>
 
@@ -119,22 +119,20 @@ export default function ProductsPage() {
                   />
                 ) : (
                   <p style={{ fontSize: "12px", opacity: 0.6 }}>
-                    Nuk ka barkod
+                    Nu există cod de bare
                   </p>
                 )}
               </div>
 
               <p className={isOutOfStock ? "out" : "in"}>
-                {isOutOfStock
-                  ? "JASHTË STOKUT ❌"
-                  : "NË STOK ✅"}
+                {isOutOfStock ? "JASPR STOC ❌" : "ÎN STOC ✅"}
               </p>
 
               <button
                 disabled={isOutOfStock}
                 onClick={() => addToCart(product)}
               >
-                {isOutOfStock ? "I padisponueshëm" : "Shto në porosi"}
+                {isOutOfStock ? "Indisponibil" : "Adaugă la comandă"}
               </button>
             </div>
           );

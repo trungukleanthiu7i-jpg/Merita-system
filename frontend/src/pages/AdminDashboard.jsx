@@ -30,20 +30,20 @@ export default function AdminDashboard() {
   });
 
   // ===============================
-  // FETCH PRODUCTS FOR BARCODE LOOKUP
+  // FETCH PRODUSE PENTRU BARCODE
   // ===============================
   const fetchProducts = useCallback(async () => {
     try {
       const res = await axiosClient.get("/products");
       setProducts(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
-      console.error("Gabim gjatë marrjes së produkteve:", err);
+      console.error("Gabim la preluarea produselor:", err);
       setProducts([]);
     }
   }, []);
 
   // ===============================
-  // FETCH ALL ORDERS
+  // FETCH TOATE POROSILE
   // ===============================
   const fetchOrders = useCallback(async () => {
     try {
@@ -51,20 +51,19 @@ export default function AdminDashboard() {
         params: { search, date: selectedDate },
       });
 
-      // SORT BY orderNumber descending (latest order on top)
       const sortedOrders = Array.isArray(res.data)
         ? res.data.sort((a, b) => Number(b.orderNumber) - Number(a.orderNumber))
         : [];
 
       setOrders(sortedOrders);
     } catch (err) {
-      console.error("Gabim gjatë marrjes së porosive:", err);
+      console.error("Eroare la preluarea comenzilor:", err);
       setOrders([]);
     }
   }, [search, selectedDate]);
 
   // ===============================
-  // FETCH MAGAZINES + AGENTS
+  // FETCH MAGAZINE + AGENTI
   // ===============================
   const fetchMagazinesAndAgents = useCallback(async () => {
     try {
@@ -73,7 +72,7 @@ export default function AdminDashboard() {
       setMagazines([...new Set(data.map((o) => o.magazinName).filter(Boolean))]);
       setAgents([...new Set(data.map((o) => o.agentName).filter(Boolean))]);
     } catch (err) {
-      console.error("Gabim gjatë marrjes së dyqaneve/agjentëve:", err);
+      console.error("Gabim la preluarea dyqaneve/agjentëve:", err);
     }
   }, []);
 
@@ -84,29 +83,29 @@ export default function AdminDashboard() {
   }, [fetchOrders, fetchMagazinesAndAgents, fetchProducts]);
 
   // ===============================
-  // DELETE ORDER
+  // ȘTERGERE POROSIE
   // ===============================
   const deleteOrder = async (id) => {
-    if (!window.confirm("Ta fshij këtë porosi?")) return;
+    if (!window.confirm("Doriți să ștergeți această comandă?")) return;
     try {
       await axiosClient.delete(`/admin/orders/${id}`);
       fetchOrders();
     } catch (err) {
-      console.error("Gabim gjatë fshirjes së porosisë:", err);
+      console.error("Eroare la ștergerea comenzii:", err);
     }
   };
 
   // ===============================
-  // NAVIGATION
+  // NAVIGAȚIE
   // ===============================
   const handleViewStatistics = () => navigate("/admin/stats");
   const handleAddProduct = () => navigate("/admin/add-product");
 
   // ===============================
-  // MAGAZINE FILTER SECTION
+  // FILTRU DYQAN
   // ===============================
   const fetchMagazineOrders = async () => {
-    if (!selectedMagazine) return alert("Ju lutem zgjidhni një dyqan");
+    if (!selectedMagazine) return alert("Vă rugăm să selectați un magazin");
     try {
       const res = await axiosClient.get("/admin/magazine-orders", {
         params: { magazinName: selectedMagazine, startDate, endDate },
@@ -126,15 +125,15 @@ export default function AdminDashboard() {
       });
       setMagazineProductStats(stats);
     } catch (err) {
-      console.error("Gabim gjatë marrjes së porosive të dyqanit:", err);
+      console.error("Eroare la preluarea comenzilor magazinului.:", err);
     }
   };
 
   // ===============================
-  // AGENT FILTER SECTION
+  // FILTRU AGENT
   // ===============================
   const fetchAgentOrders = async () => {
-    if (!selectedAgent) return alert("Ju lutem zgjidhni një agjent");
+    if (!selectedAgent) return alert("Vă rugăm să selectați un agent");
     try {
       const res = await axiosClient.get("/admin/agent-orders", {
         params: {
@@ -160,13 +159,13 @@ export default function AdminDashboard() {
       });
       setAgentStats({ totalRevenue, totalOrders: data.length, products });
     } catch (err) {
-      console.error("Gabim gjatë marrjes së porosive të agjentit:", err);
+      console.error("Eroare la preluarea comenzilor agenților:", err);
     }
   };
 
   return (
     <div className="admin-dashboard">
-      <h1>Paneli i Administratorit</h1>
+      <h1>Paneli Administrator</h1>
 
       <div className="admin-buttons">
         <button
@@ -174,22 +173,22 @@ export default function AdminDashboard() {
           className="stats-btn"
           onClick={handleViewStatistics}
         >
-          📊 Shiko statistikat
+          📊 Vezi statistici
         </button>
         <button
           type="button"
           className="add-product-btn"
           onClick={handleAddProduct}
         >
-          ➕ Shto produkt
+          ➕ Adaugă produs
         </button>
       </div>
 
-      {/* Filters */}
+      {/* Filtre */}
       <div className="filters">
         <input
           type="text"
-          placeholder="Kërko sipas agjentit ose dyqanit..."
+          placeholder="Caută după agent sau magazin..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -200,22 +199,22 @@ export default function AdminDashboard() {
         />
       </div>
 
-      {/* Orders Table */}
-      <h2>Të gjitha porositë</h2>
+      {/* Tabel porosi */}
+      <h2>Toate comenzile</h2>
       <table>
         <thead>
           <tr>
             <th>#</th>
-            <th>Agjenti</th>
-            <th>Dyqani</th>
-            <th>Totali</th>
+            <th>Agent</th>
+            <th>Magazin</th>
+            <th>Total</th>
             <th>Data</th>
             <th>NIPT</th>
-            <th>Adresa</th>
-            <th>Përgjegjësi</th>
-            <th>Nënshkrimi</th>
-            <th>Detaje</th>
-            <th>Fshi</th>
+            <th>Adresă</th>
+            <th>Responsabil</th>
+            <th>Semnătură</th>
+            <th>Detalii</th>
+            <th>Șterge</th>
           </tr>
         </thead>
         <tbody>
@@ -231,22 +230,22 @@ export default function AdminDashboard() {
           ) : (
             <tr>
               <td colSpan="11" style={{ textAlign: "center" }}>
-                Nuk u gjet asnjë porosi
+                Nu s-a găsit nicio comandă
               </td>
             </tr>
           )}
         </tbody>
       </table>
 
-      {/* MAGAZINE SECTION */}
+      {/* Sectiune Magazin */}
       <div className="magazine-section">
-        <h2>Porositë sipas dyqanit</h2>
+        <h2>Comenzile pe magazin</h2>
         <div className="filters">
           <select
             value={selectedMagazine}
             onChange={(e) => setSelectedMagazine(e.target.value)}
           >
-            <option value="">Zgjidh dyqanin</option>
+            <option value="">Alege magazin</option>
             {magazines.map((m) => (
               <option key={m} value={m}>
                 {m}
@@ -264,7 +263,7 @@ export default function AdminDashboard() {
             onChange={(e) => setEndDate(e.target.value)}
           />
           <button type="button" onClick={fetchMagazineOrders}>
-            Merr porositë
+            Preia comenzile
           </button>
         </div>
 
@@ -272,9 +271,9 @@ export default function AdminDashboard() {
           <table className="stats-table">
             <thead>
               <tr>
-                <th>Produkti</th>
-                <th>Njësi</th>
-                <th>Kuti</th>
+                <th>Produs</th>
+                <th>Unități</th>
+                <th>Box</th>
               </tr>
             </thead>
             <tbody>
@@ -290,15 +289,15 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      {/* AGENT SECTION */}
+      {/* Sectiune Agent */}
       <div className="agent-section">
-        <h2>Porositë sipas agjentit</h2>
+        <h2>Comenzile pe agent</h2>
         <div className="filters">
           <select
             value={selectedAgent}
             onChange={(e) => setSelectedAgent(e.target.value)}
           >
-            <option value="">Zgjidh agjentin</option>
+            <option value="">Alege agent</option>
             {agents.map((a) => (
               <option key={a} value={a}>
                 {a}
@@ -316,21 +315,21 @@ export default function AdminDashboard() {
             onChange={(e) => setAgentEndDate(e.target.value)}
           />
           <button type="button" onClick={fetchAgentOrders}>
-            Merr porositë
+            Preia comenzile
           </button>
         </div>
 
         <div className="agent-stats">
-          <p>Totali i porosive: {agentStats.totalOrders}</p>
-          <p>Të ardhurat totale: {agentStats.totalRevenue.toFixed(2)} Lek</p>
+          <p>Total comenzi: {agentStats.totalOrders}</p>
+          <p>Venituri totale: {agentStats.totalRevenue.toFixed(2)} RON</p>
 
           {Object.keys(agentStats.products).length > 0 && (
             <table className="stats-table">
               <thead>
                 <tr>
-                  <th>Produkti</th>
-                  <th>Njësi</th>
-                  <th>Kuti</th>
+                  <th>Produs</th>
+                  <th>Unități</th>
+                  <th>Box</th>
                 </tr>
               </thead>
               <tbody>
@@ -351,7 +350,7 @@ export default function AdminDashboard() {
 }
 
 // ==========================================
-// ORDER ROW COMPONENT WITH BARCODE
+// COMPONENT RÂND POROSIE CU BARCODE
 // ==========================================
 function OrderRow({ order, deleteOrder, products }) {
   const [open, setOpen] = useState(false);
@@ -370,18 +369,18 @@ function OrderRow({ order, deleteOrder, products }) {
     const logo = "/zdrava.png";
     doc.addImage(logo, "PNG", 150, 10, 60, 60);
     doc.setFontSize(18);
-    doc.text(`Porosia #${order.orderNumber}`, 14, 20);
+    doc.text(`Comanda #${order.orderNumber}`, 14, 20);
     doc.setFontSize(12);
-    doc.text(`Agjenti: ${order.agentName}`, 14, 35);
-    doc.text(`Dyqani: ${order.magazinName}`, 14, 42);
+    doc.text(`Agent: ${order.agentName}`, 14, 35);
+    doc.text(`Magazin: ${order.magazinName}`, 14, 42);
     doc.text(
       `Data: ${new Date(order.createdAt).toLocaleDateString()}`,
       14,
       49
     );
     doc.text(`NIPT: ${order.cui}`, 14, 56);
-    doc.text(`Adresa: ${order.address}`, 14, 63);
-    doc.text(`Përgjegjësi:`, 14, 73);
+    doc.text(`Adresă: ${order.address}`, 14, 63);
+    doc.text(`Responsabil:`, 14, 73);
     doc.text(order.responsiblePerson, 14, 80);
 
     if (order.signature) {
@@ -397,13 +396,13 @@ function OrderRow({ order, deleteOrder, products }) {
 
     autoTable(doc, {
       startY: 120,
-      head: [["Produkti", "Kuti", "Njësi/Kuti", "Totali i njësive", "Çmimi", "Barkodi"]],
+      head: [["Produs", "Box", "Unități/Cutie", "Total Unități", "Preț", "Cod Bare"]],
       body: rows.map((r) => [
         r.item.name,
         r.item.boxes,
         r.item.unitsPerBox,
         r.totalUnits,
-        (r.totalUnits * Number(r.item.price || 0)).toFixed(2) + " Lek",
+        (r.totalUnits * Number(r.item.price || 0)).toFixed(2) + " RON",
         "",
       ]),
       didDrawCell: (data) => {
@@ -455,9 +454,9 @@ function OrderRow({ order, deleteOrder, products }) {
 
     const finalY = doc.lastAutoTable.finalY + 10;
     doc.setFontSize(14);
-    doc.text(`TOTALI: ${total.toFixed(2)} Lek`, 14, finalY);
+    doc.text(`TOTAL: ${total.toFixed(2)} RON`, 14, finalY);
 
-    doc.save(`Porosia_${order.orderNumber}.pdf`);
+    doc.save(`Comanda${order.orderNumber}.pdf`);
   };
 
   return (
@@ -466,21 +465,21 @@ function OrderRow({ order, deleteOrder, products }) {
         <td>{order.orderNumber}</td>
         <td>{order.agentName}</td>
         <td>{order.magazinName}</td>
-        <td>{total.toFixed(2)} Lek</td>
+        <td>{total.toFixed(2)} RON</td>
         <td>{new Date(order.createdAt).toLocaleDateString()}</td>
         <td>{order.cui}</td>
         <td>{order.address}</td>
         <td>{order.responsiblePerson}</td>
         <td>
           {order.signature ? (
-            <img src={order.signature} alt="Nënshkrimi" className="signature-img" />
+            <img src={order.signature} alt="Semnătură" className="signature-img" />
           ) : (
             "N/A"
           )}
         </td>
         <td>
           <button type="button" onClick={() => setOpen(!open)}>
-            Shiko
+            Vezi
           </button>
         </td>
         <td>
@@ -488,7 +487,7 @@ function OrderRow({ order, deleteOrder, products }) {
             type="button"
             className="delete-btn"
             onClick={() => deleteOrder(order._id)}
-            title="Fshi"
+            title="Șterge"
           >
             🗑️
           </button>
@@ -496,7 +495,7 @@ function OrderRow({ order, deleteOrder, products }) {
             type="button"
             className="download-btn"
             onClick={handleDownloadPDF}
-            title="Shkarko PDF"
+            title="Descarcă PDF"
           >
             ⬇️
           </button>
@@ -507,16 +506,16 @@ function OrderRow({ order, deleteOrder, products }) {
         <tr className="details-row">
           <td colSpan="12">
             <div className="details-box">
-              <h3>Produktet</h3>
+              <h3>Produse</h3>
               <table className="details-products-table">
                 <thead>
                   <tr>
-                    <th>Produkti</th>
-                    <th>Barkodi</th>
-                    <th>Kuti</th>
-                    <th>Njësi/Kuti</th>
-                    <th>Totali i njësive</th>
-                    <th>Çmimi</th>
+                    <th>Produs</th>
+                    <th>Cod Bare</th>
+                    <th>Box</th>
+                    <th>Unități/Cutie</th>
+                    <th>Total Unități</th>
+                    <th>Preț</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -545,7 +544,7 @@ function OrderRow({ order, deleteOrder, products }) {
                         <td>{item.boxes}</td>
                         <td>{item.unitsPerBox}</td>
                         <td>{totalUnits}</td>
-                        <td>{(totalUnits * Number(item.price || 0)).toFixed(2)} Lek</td>
+                        <td>{(totalUnits * Number(item.price || 0)).toFixed(2)} RON</td>
                       </tr>
                     );
                   })}

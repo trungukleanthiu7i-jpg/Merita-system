@@ -18,7 +18,7 @@ export default function CartPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // ✅ Safe API base (works local + deployed)
+  // ✅ Safe API base (lucrează local + deployed)
   const API_BASE =
     (process.env.REACT_APP_API_URL || "http://localhost:5000").replace(
       /\/api$/,
@@ -49,11 +49,11 @@ export default function CartPage() {
 
   return (
     <div className="cart-page">
-      <h1>Porosia juaj</h1>
+      <h1>Comanda dvs.</h1>
 
       {cart.length === 0 ? (
         <p className="empty-message">
-          Ende nuk janë shtuar produkte.
+          Nu au fost adăugate produse încă.
         </p>
       ) : (
         cart.map((item) => {
@@ -78,7 +78,7 @@ export default function CartPage() {
 
                 <div className="inputs-row">
                   <div>
-                    <label>Kuti</label>
+                    <label>Box</label>
                     <input
                       type="number"
                       min="0"
@@ -90,7 +90,7 @@ export default function CartPage() {
                   </div>
 
                   <div>
-                    <label>Çmimi / njësi</label>
+                    <label>Preț / unitate</label>
                     <input
                       type="number"
                       step="0.01"
@@ -108,14 +108,14 @@ export default function CartPage() {
                 </div>
 
                 <p className="price">
-                  Totali i produktit: {getItemTotal(item).toFixed(2)} LEK
+                  Total produs: {getItemTotal(item).toFixed(2)} RON
                 </p>
               </div>
 
               <FaTrash
                 className="delete-icon"
                 onClick={() => removeFromCart(item._id)}
-                title="Fshij produktin"
+                title="Șterge produsul"
               />
             </div>
           );
@@ -125,28 +125,28 @@ export default function CartPage() {
       {cart.length > 0 && (
         <>
           <div className="summary-box">
-            <h2>Përmbledhje e porosisë</h2>
+            <h2>Rezumat comandă</h2>
 
             <p>
-              <strong>Totali i kutive:</strong> {totalBoxes}
+              <strong>Total box:</strong> {totalBoxes}
             </p>
 
             <p>
-              <strong>Totali i njësive:</strong> {totalUnits}
+              <strong>Total unități:</strong> {totalUnits}
             </p>
 
             <p>
-              <strong>Çmimi total:</strong> {totalOrder.toFixed(2)} LEK
+              <strong>Preț total:</strong> {totalOrder.toFixed(2)} RON
             </p>
           </div>
 
           <div className="actions-row">
             <button className="clear-all-btn" onClick={clearCart}>
-              Fshij të gjitha
+              Șterge toate
             </button>
 
             <button onClick={handleProceedToAgentInfo} className="submit-btn">
-              Vazhdo
+              Continuă
             </button>
           </div>
         </>

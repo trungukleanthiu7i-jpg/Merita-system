@@ -5,7 +5,7 @@ import axios from "axios";
 export const CartContext = createContext();
 
 // --------------------
-// Axios client
+// Client Axios
 // --------------------
 const axiosClient = axios.create({
   baseURL: "http://localhost:5000/api",
@@ -18,7 +18,7 @@ export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
 
   // --------------------
-  // Fetch products from backend
+  // Preia produsele din backend
   // --------------------
   useEffect(() => {
     const fetchProducts = async () => {
@@ -26,14 +26,14 @@ export function CartProvider({ children }) {
         const res = await axiosClient.get("/products");
         setProducts(res.data);
 
-        // Map productId -> stock status
+        // Creează un map productId -> stoc
         const stockMap = {};
         res.data.forEach((p) => {
           stockMap[p._id] = p.stoc || "in stoc";
         });
         setProductsStock(stockMap);
       } catch (err) {
-        console.error("Error fetching products:", err);
+        console.error("Eroare la preluarea produselor:", err);
       }
     };
 
@@ -41,7 +41,7 @@ export function CartProvider({ children }) {
   }, []);
 
   // --------------------
-  // Add product to cart
+  // Adaugă produs în coș
   // --------------------
   const addToCart = (product) => {
     const stock = productsStock[product._id] || "in stoc";
@@ -65,8 +65,8 @@ export function CartProvider({ children }) {
           name: product.name,
           boxes: 1,
           quantity: 0,
-          price: product.price || 0,
-          customPrice: product.price || 0,
+          price: product.price || 0,       // preț în RON
+          customPrice: product.price || 0, // preț personalizat în RON
           unitsPerBox: product.unitsPerBox || 1,
           image: product.image || "",
         },
@@ -75,7 +75,7 @@ export function CartProvider({ children }) {
   };
 
   // --------------------
-  // Update number of boxes
+  // Actualizează numărul de cutii
   // --------------------
   const updateBoxes = (id, boxes) => {
     setCart(
@@ -88,7 +88,7 @@ export function CartProvider({ children }) {
   };
 
   // --------------------
-  // Update single-unit quantity
+  // Actualizează cantitatea pe unități
   // --------------------
   const updateQuantity = (id, quantity) => {
     setCart(
@@ -101,7 +101,7 @@ export function CartProvider({ children }) {
   };
 
   // --------------------
-  // Update custom price per unit
+  // Actualizează prețul personalizat pe unitate (în RON)
   // --------------------
   const updatePrice = (id, price) => {
     setCart(
@@ -114,19 +114,19 @@ export function CartProvider({ children }) {
   };
 
   // --------------------
-  // Remove product from cart
+  // Elimină produsul din coș
   // --------------------
   const removeFromCart = (id) => {
     setCart(cart.filter((item) => item._id !== id));
   };
 
   // --------------------
-  // Clear entire cart
+  // Golește întregul coș
   // --------------------
   const clearCart = () => setCart([]);
 
   // --------------------
-  // Total boxes in cart
+  // Total cutii din coș
   // --------------------
   const totalBoxes = cart.reduce((sum, item) => sum + (item.boxes || 0), 0);
 

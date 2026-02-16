@@ -15,7 +15,7 @@ const AddProduct = () => {
     unitsPerBox: "",
     image: "",
     stoc: "in stoc",
-    barcode: "", // ✅ optional barcode number
+    barcode: "", // ✅ cod de bare opțional
   });
 
   const [loading, setLoading] = useState(false);
@@ -35,7 +35,7 @@ const AddProduct = () => {
     setLoading(true);
 
     try {
-      // Save barcode as number or null if empty
+      // Salvează codul de bare ca număr sau null dacă e gol
       const payload = {
         ...form,
         barcode: form.barcode ? form.barcode : null,
@@ -44,11 +44,11 @@ const AddProduct = () => {
       // ★ FOLOSEȘTE axiosClient, NU axios + localhost!!!
       await axiosClient.post("/products", payload);
 
-      alert("Product added successfully!");
+      alert("Produsul a fost adăugat cu succes!");
       navigate("/admin");
     } catch (err) {
-      console.error("Add product error:", err.response?.data || err);
-      alert("Error adding product. Check console for details.");
+      console.error("Eroare la adăugarea produsului:", err.response?.data || err);
+      alert("Eroare la adăugarea produsului. Verifică consola pentru detalii.");
     } finally {
       setLoading(false);
     }
@@ -56,26 +56,26 @@ const AddProduct = () => {
 
   return (
     <div className="addproduct-page">
-      <h1>Add Product</h1>
+      <h1>Adaugă Produs</h1>
       <form onSubmit={handleSubmit} className="product-form">
         <input
           type="text"
           name="name"
-          placeholder="Product Name"
+          placeholder="Nume Produs"
           required
           onChange={handleChange}
         />
 
         <textarea
           name="description"
-          placeholder="Description (optional)"
+          placeholder="Descriere (opțional)"
           onChange={handleChange}
         />
 
         <input
           type="number"
           name="price"
-          placeholder="Price"
+          placeholder="Preț (RON)"
           required
           min="0"
           step="0.01"
@@ -85,7 +85,7 @@ const AddProduct = () => {
         <input
           type="text"
           name="category"
-          placeholder="Category"
+          placeholder="Categorie"
           required
           onChange={handleChange}
         />
@@ -93,7 +93,7 @@ const AddProduct = () => {
         <input
           type="number"
           name="unitsPerBox"
-          placeholder="Units per Box"
+          placeholder="Unități per cutie"
           required
           min="1"
           onChange={handleChange}
@@ -102,19 +102,19 @@ const AddProduct = () => {
         <input
           type="text"
           name="image"
-          placeholder="Image URL (optional)"
+          placeholder="URL Imagine (opțional)"
           onChange={handleChange}
         />
 
-        {/* ✅ Optional Barcode Number */}
+        {/* ✅ Cod de bare opțional */}
         <input
           type="text"
           name="barcode"
-          placeholder="Barcode Number (optional)"
+          placeholder="Număr cod de bare (opțional)"
           onChange={handleChange}
         />
 
-        <label htmlFor="stoc">Stock Status:</label>
+        <label htmlFor="stoc">Stare stoc:</label>
         <select
           name="stoc"
           id="stoc"
@@ -122,12 +122,12 @@ const AddProduct = () => {
           onChange={handleChange}
           required
         >
-          <option value="in stoc">In Stock</option>
-          <option value="out of stoc">Out of Stock</option>
+          <option value="in stoc">În Stoc</option>
+          <option value="out of stoc">Stoc Epuizat</option>
         </select>
 
         <button type="submit" disabled={loading}>
-          {loading ? "Adding..." : "Add Product"}
+          {loading ? "Se adaugă..." : "Adaugă Produs"}
         </button>
       </form>
     </div>

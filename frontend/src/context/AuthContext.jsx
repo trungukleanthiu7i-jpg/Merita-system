@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState(null);
 
   // --------------------
-  // Check if user is already logged in
+  // Verifică dacă utilizatorul este deja autentificat
   // --------------------
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -18,7 +18,7 @@ export function AuthProvider({ children }) {
         const token = localStorage.getItem("token");
         if (token) {
           axiosClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-          const res = await axiosClient.get("/auth/me"); // endpoint to get current user
+          const res = await axiosClient.get("/auth/me"); // endpoint pentru a obține utilizatorul curent
           setUser(res.data.user);
         }
       } catch (err) {
@@ -31,7 +31,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   // --------------------
-  // Login function
+  // Funcția de autentificare
   // --------------------
   const login = async (username, password) => {
     setLoading(true);
@@ -43,7 +43,7 @@ export function AuthProvider({ children }) {
       if (res.data && res.data.user) {
         setUser(res.data.user);
 
-        // If your API returns a token, store it
+        // Dacă API-ul returnează un token, îl stochează
         if (res.data.token) {
           localStorage.setItem("token", res.data.token);
           axiosClient.defaults.headers.common["Authorization"] = `Bearer ${res.data.token}`;
@@ -52,13 +52,13 @@ export function AuthProvider({ children }) {
         setLoading(false);
         return true;
       } else {
-        setError("User not found or invalid response");
+        setError("Utilizatorul nu a fost găsit sau răspuns invalid");
         setUser(null);
         setLoading(false);
         return false;
       }
     } catch (err) {
-      console.error("Login failed", err.response?.data || err);
+      console.error("Autentificare eșuată", err.response?.data || err);
 
       if (err.response?.status === 401) {
         setError("Username sau parola incorectă!");
@@ -73,7 +73,7 @@ export function AuthProvider({ children }) {
   };
 
   // --------------------
-  // Logout function
+  // Funcția de deconectare
   // --------------------
   const logout = () => {
     setUser(null);
@@ -89,5 +89,5 @@ export function AuthProvider({ children }) {
   );
 }
 
-// Custom hook
+// Hook personalizat
 export const useAuth = () => useContext(AuthContext);

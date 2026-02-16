@@ -7,12 +7,12 @@ export default function ProductCard({ product }) {
 
   if (!product) return null;
 
-  const name = product.name || "Unnamed product";
+  const name = product.name || "Produs fără nume";
   const price = product.price ?? 0;
   const unitsPerBox = product.unitsPerBox || 1;
   const image = product.image || "/placeholder.png";
 
-  // Normalize stock value
+  // Normalizează stocul
   const stoc = (product.stoc || "in stoc").toLowerCase().trim();
   const isOutOfStock = stoc === "out of stoc";
 
@@ -25,15 +25,15 @@ export default function ProductCard({ product }) {
 
       <h3>{name}</h3>
 
-      <p><strong>Price:</strong> {price} <Lek></Lek></p>
-      <p><strong>Units per box:</strong> {unitsPerBox}</p>
+      <p><strong>Preț:</strong> {price} RON</p>
+      <p><strong>Unități per box:</strong> {unitsPerBox}</p>
 
       <p className={isOutOfStock ? "out" : "in"}>
-        {isOutOfStock ? "OUT OF STOCK ❌" : "IN STOCK ✅"}
+        {isOutOfStock ? "STOC EPUIZAT ❌" : "ÎN STOC ✅"}
       </p>
 
       <button disabled={isOutOfStock} onClick={() => addToCart(product)}>
-        {isOutOfStock ? "Unavailable" : "Add to Order"}
+        {isOutOfStock ? "Indisponibil" : "Adaugă la comandă"}
       </button>
     </div>
   );
