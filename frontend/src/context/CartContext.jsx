@@ -5,10 +5,10 @@ import axios from "axios";
 export const CartContext = createContext();
 
 // --------------------
-// Client Axios
+// Client Axios (local + production)
 // --------------------
 const axiosClient = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000/api",
   headers: { "Content-Type": "application/json" },
 });
 
@@ -24,16 +24,18 @@ export function CartProvider({ children }) {
     const fetchProducts = async () => {
       try {
         const res = await axiosClient.get("/products");
-        setProducts(res.data);
+
+        const list = Array.isArray(res.data) ? res.data : res.data?.products || [];
+        setProducts(list);
 
         // Creează un map productId -> stoc
         const stockMap = {};
-        res.data.forEach((p) => {
+        list.forEach((p) => {
           stockMap[p._id] = p.stoc || "in stoc";
         });
         setProductsStock(stockMap);
       } catch (err) {
-        console.error("Eroare la preluarea produselor:", err);
+        console.error("Eroare la preluarea produselor:", err?.response?.data || err);
       }
     };
 
@@ -44,8 +46,10 @@ export function CartProvider({ children }) {
   // Adaugă produs în coș
   // --------------------
   const addToCart = (product) => {
+    if (!product?._id) return;
+
     const stock = productsStock[product._id] || "in stoc";
-    if (stock === "out of stoc") return;
+    if (String(stock).toLowerCase().trim() === "out of stoc") return;
 
     const exists = cart.find((item) => item._id === product._id);
 
