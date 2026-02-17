@@ -1,13 +1,29 @@
 // src/api/axiosClient.js
 import axios from "axios";
 
-const API_URL = process.env.REACT_APP_API_URL || ""; // fallback dacă ENV lipsește
+/*
+REACT_APP_API_URL should be:
+LOCAL  -> http://localhost:5000/api
+RENDER -> https://merita-system-backend.onrender.com/api
+*/
+
+const API_URL =
+  process.env.REACT_APP_API_URL ||
+  "http://localhost:5000/api";
+
+// remove trailing slash if exists
+const baseURL = API_URL.replace(/\/$/, "");
 
 const axiosClient = axios.create({
-  baseURL: `${API_URL}/api`,
+  baseURL,
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-// Interceptor for request
+// ==========================
+// REQUEST INTERCEPTOR
+// ==========================
 axiosClient.interceptors.request.use(
   (config) => {
     // JWT token (normal users)
@@ -21,9 +37,7 @@ axiosClient.interceptors.request.use(
       const adminUser = process.env.REACT_APP_ADMIN_USER;
       const adminPass = process.env.REACT_APP_ADMIN_PASS;
 
-      if (!adminUser || !adminPass) {
-        console.error("Missing REACT_APP_ADMIN_USER or REACT_APP_ADMIN_PASS!");
-      } else {
+      if (adminUser && adminPass) {
         const basicAuth = btoa(`${adminUser}:${adminPass}`);
         config.headers.Authorization = `Basic ${basicAuth}`;
       }
@@ -34,7 +48,9 @@ axiosClient.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Interceptor for response
+// ==========================
+// RESPONSE INTERCEPTOR
+// ==========================
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
