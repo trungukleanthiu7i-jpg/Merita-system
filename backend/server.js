@@ -25,18 +25,16 @@ connectDB();
 // -------------------------
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://merita-system-frontend.onrender.com", // ✅ NEW Frontend Render domain
+  "https://merita-system-frontend.onrender.com",
 ];
 
 app.use(
   cors({
-    origin: function (origin, callback) {
+    origin: (origin, callback) => {
       // allow requests with no origin (Postman, server-to-server)
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+      if (allowedOrigins.includes(origin)) return callback(null, true);
 
       return callback(new Error("Not allowed by CORS"));
     },
@@ -46,8 +44,8 @@ app.use(
   })
 );
 
-// ✅ Important: handle preflight requests
-app.options("*", cors());
+// ✅ IMPORTANT: preflight (do NOT use "*")
+app.options("/*", cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
