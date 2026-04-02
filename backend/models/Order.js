@@ -7,6 +7,12 @@ const OrderSchema = new mongoose.Schema({
     unique: true,
   },
 
+  documentType: {
+    type: String,
+    enum: ["invoice", "aviz"],
+    default: "invoice",
+  },
+
   agentName: {
     type: String,
     required: true,
@@ -59,4 +65,3 @@ const OrderSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model("Order", OrderSchema, "orders");
-
