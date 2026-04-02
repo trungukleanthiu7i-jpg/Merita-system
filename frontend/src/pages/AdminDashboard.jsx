@@ -205,6 +205,7 @@ export default function AdminDashboard() {
         <thead>
           <tr>
             <th>#</th>
+            <th>Tip document</th>
             <th>Agent</th>
             <th>Magazin</th>
             <th>Total</th>
@@ -229,7 +230,7 @@ export default function AdminDashboard() {
             ))
           ) : (
             <tr>
-              <td colSpan="11" style={{ textAlign: "center" }}>
+              <td colSpan="12" style={{ textAlign: "center" }}>
                 Nu s-a găsit nicio comandă
               </td>
             </tr>
@@ -364,6 +365,9 @@ function OrderRow({ order, deleteOrder, products }) {
       }, 0)
     : 0;
 
+  const documentTypeLabel =
+    order.documentType === "aviz" ? "Aviz" : "Factură";
+
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
     const logo = "/zdrava.png";
@@ -371,6 +375,7 @@ function OrderRow({ order, deleteOrder, products }) {
     doc.setFontSize(18);
     doc.text(`Comanda #${order.orderNumber}`, 14, 20);
     doc.setFontSize(12);
+    doc.text(`Tip document: ${documentTypeLabel}`, 14, 28);
     doc.text(`Agent: ${order.agentName}`, 14, 35);
     doc.text(`Magazin: ${order.magazinName}`, 14, 42);
     doc.text(
@@ -411,7 +416,8 @@ function OrderRow({ order, deleteOrder, products }) {
           data.cell.section === "body"
         ) {
           const item = rows[data.row.index].item;
-          const barcodeValue = products.find((p) => p.name === item.name)?.barcode || "";
+          const barcodeValue =
+            products.find((p) => p.name === item.name)?.barcode || "";
           if (!barcodeValue) return;
 
           const canvas = document.createElement("canvas");
@@ -463,6 +469,7 @@ function OrderRow({ order, deleteOrder, products }) {
     <>
       <tr>
         <td>{order.orderNumber}</td>
+        <td>{documentTypeLabel}</td>
         <td>{order.agentName}</td>
         <td>{order.magazinName}</td>
         <td>{total.toFixed(2)} RON</td>
@@ -507,6 +514,9 @@ function OrderRow({ order, deleteOrder, products }) {
           <td colSpan="12">
             <div className="details-box">
               <h3>Produse</h3>
+              <p style={{ marginBottom: "12px", fontWeight: "600" }}>
+                Tip document: {documentTypeLabel}
+              </p>
               <table className="details-products-table">
                 <thead>
                   <tr>
