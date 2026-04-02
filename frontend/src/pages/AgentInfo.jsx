@@ -13,6 +13,7 @@ export default function AgentInfo() {
   const navigate = useNavigate();
   const { clearCart, cart } = useContext(CartContext);
 
+  const [documentType, setDocumentType] = useState("invoice");
   const [agentName, setAgentName] = useState("");
   const [magazinName, setMagazinName] = useState("");
   const [cui, setCui] = useState("");
@@ -64,6 +65,7 @@ export default function AgentInfo() {
 
     const data = {
       items,
+      documentType,
       agentName: agentName.trim(),
       magazinName: magazinName.trim(),
       cui: cui.trim(),
@@ -87,6 +89,7 @@ export default function AgentInfo() {
 
       clearCart();
       sigCanvas.current?.clear();
+      setDocumentType("invoice");
       setAgentName("");
       setMagazinName("");
       setCui("");
@@ -111,6 +114,19 @@ export default function AgentInfo() {
       <h2>Completați detaliile comenzii</h2>
 
       <div className="form-container">
+        <div className="document-type-group">
+          <label htmlFor="documentType">Tip document</label>
+          <select
+            id="documentType"
+            value={documentType}
+            onChange={(e) => setDocumentType(e.target.value)}
+            className="document-type-select"
+          >
+            <option value="invoice">Factură</option>
+            <option value="aviz">Aviz</option>
+          </select>
+        </div>
+
         <input
           type="text"
           placeholder="Nume agent"
@@ -164,7 +180,6 @@ export default function AgentInfo() {
         </button>
       </div>
 
-      {/* ✅ ToastContainer afișează notificările popup */}
       <ToastContainer
         position="top-center"
         autoClose={3000}
