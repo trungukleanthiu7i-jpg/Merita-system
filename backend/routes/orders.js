@@ -18,6 +18,18 @@ router.post("/create", async (req, res) => {
       signature,
     } = req.body;
 
+    console.log("📥 Incoming order payload:");
+    console.log({
+      documentType,
+      agentName,
+      magazinName,
+      cui,
+      address,
+      responsiblePerson,
+      itemsCount: Array.isArray(items) ? items.length : 0,
+      hasSignature: !!signature,
+    });
+
     // Validate required fields
     if (
       !items ||
@@ -39,6 +51,8 @@ router.post("/create", async (req, res) => {
     // Validate document type
     const normalizedDocumentType =
       documentType === "aviz" ? "aviz" : "invoice";
+
+    console.log("🧾 Normalized documentType =", normalizedDocumentType);
 
     // Validate each item and stock
     for (const item of items) {
@@ -91,20 +105,36 @@ router.post("/create", async (req, res) => {
       createdAt: new Date(),
     });
 
+    console.log("🛠 Order before save:", {
+      orderNumber: newOrder.orderNumber,
+      documentType: newOrder.documentType,
+      agentName: newOrder.agentName,
+      magazinName: newOrder.magazinName,
+    });
+
     const savedOrder = await newOrder.save();
+
+    console.log("✅ Order saved:", {
+      _id: savedOrder._id,
+      orderNumber: savedOrder.orderNumber,
+      documentType: savedOrder.documentType,
+    });
 
     res.status(201).json({
       message: "Order saved successfully!",
       order: savedOrder,
     });
   } catch (err) {
-    console.error("Order creation error:", err);
-    res.status(500).json({ message: "Error saving order", error: err.message });
+    console.error("❌ Order creation error:", err);
+    res.status(500).json({
+      message: "Error saving order",
+      error: err.message,
+    });
   }
 });
 
 // =========================
-// Get all orders (for admin)
+// Get all orders
 // =========================
 router.get("/", async (req, res) => {
   try {
@@ -131,10 +161,16 @@ router.get("/", async (req, res) => {
     }
 
     const orders = await Order.find(query).sort({ createdAt: -1 });
+
+    console.log(`📦 Orders fetched from /api/orders: ${orders.length}`);
+
     res.status(200).json(orders);
   } catch (err) {
-    console.error("Error fetching orders:", err);
-    res.status(500).json({ message: "Error fetching orders", error: err.message });
+    console.error("❌ Error fetching orders:", err);
+    res.status(500).json({
+      message: "Error fetching orders",
+      error: err.message,
+    });
   }
 });
 

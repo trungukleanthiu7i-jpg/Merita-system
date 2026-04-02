@@ -11,11 +11,12 @@ router.get("/orders", async (req, res) => {
 
     let query = {};
 
-    // Search by agent or magazin
+    // Search by agent, magazin, or document type
     if (search) {
       query.$or = [
         { agentName: { $regex: search, $options: "i" } },
-        { magazinName: { $regex: search, $options: "i" } }
+        { magazinName: { $regex: search, $options: "i" } },
+        { documentType: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -31,6 +32,17 @@ router.get("/orders", async (req, res) => {
     }
 
     const orders = await Order.find(query).sort({ createdAt: -1 });
+
+    console.log("📋 Admin GET /orders");
+    console.log("Query:", query);
+    console.log("Orders found:", orders.length);
+    if (orders.length > 0) {
+      console.log(
+        "Sample order documentType:",
+        orders[0].documentType || "MISSING"
+      );
+    }
+
     res.json(orders);
   } catch (err) {
     console.error("Admin GET orders error:", err);
@@ -45,8 +57,9 @@ router.get("/magazine-orders", async (req, res) => {
   try {
     const { magazinName, startDate, endDate } = req.query;
 
-    if (!magazinName)
+    if (!magazinName) {
       return res.status(400).json({ message: "Magazine name is required" });
+    }
 
     const query = { magazinName };
 
@@ -58,7 +71,7 @@ router.get("/magazine-orders", async (req, res) => {
 
     const orders = await Order.find(query).sort({ createdAt: -1 });
 
-    console.log(`Magazine Orders Query:`, query);
+    console.log("📦 Magazine Orders Query:", query);
     console.log(`Found ${orders.length} orders`);
 
     res.json(orders);
@@ -75,8 +88,9 @@ router.get("/agent-orders", async (req, res) => {
   try {
     const { agentName, startDate, endDate } = req.query;
 
-    if (!agentName)
+    if (!agentName) {
       return res.status(400).json({ message: "Agent name is required" });
+    }
 
     const query = { agentName };
 
@@ -88,7 +102,7 @@ router.get("/agent-orders", async (req, res) => {
 
     const orders = await Order.find(query).sort({ createdAt: -1 });
 
-    console.log(`Agent Orders Query:`, query);
+    console.log("👤 Agent Orders Query:", query);
     console.log(`Found ${orders.length} orders`);
 
     res.json(orders);
@@ -106,10 +120,10 @@ router.get("/orders-meta", async (req, res) => {
     const orders = await Order.find({});
 
     const magazines = [
-      ...new Set(orders.map(o => o.magazinName).filter(Boolean))
+      ...new Set(orders.map((o) => o.magazinName).filter(Boolean)),
     ];
     const agents = [
-      ...new Set(orders.map(o => o.agentName).filter(Boolean))
+      ...new Set(orders.map((o) => o.agentName).filter(Boolean)),
     ];
 
     res.json({ magazines, agents });
@@ -125,7 +139,9 @@ router.get("/orders-meta", async (req, res) => {
 router.delete("/orders/:id", async (req, res) => {
   try {
     const deleted = await Order.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ message: "Order not found" });
+    if (!deleted) {
+      return res.status(404).json({ message: "Order not found" });
+    }
 
     res.json({ message: "Order deleted successfully" });
   } catch (err) {
