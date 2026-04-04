@@ -19,6 +19,7 @@ export default function AgentInfo() {
   const [cui, setCui] = useState("");
   const [address, setAddress] = useState("");
   const [responsiblePerson, setResponsiblePerson] = useState("");
+  const [comments, setComments] = useState("");
   const [loading, setLoading] = useState(false);
 
   const sigCanvas = useRef(null);
@@ -71,6 +72,7 @@ export default function AgentInfo() {
       cui: cui.trim(),
       address: address.trim(),
       responsiblePerson: responsiblePerson.trim(),
+      comments: comments.trim(),
       signature: signatureData,
     };
 
@@ -95,6 +97,7 @@ export default function AgentInfo() {
       setCui("");
       setAddress("");
       setResponsiblePerson("");
+      setComments("");
 
       setTimeout(() => navigate("/"), 1500);
     } catch (err) {
@@ -156,6 +159,14 @@ export default function AgentInfo() {
           placeholder="Persoana responsabilă"
           value={responsiblePerson}
           onChange={(e) => setResponsiblePerson(e.target.value)}
+        />
+
+        <textarea
+          placeholder="Comentarii"
+          value={comments}
+          onChange={(e) => setComments(e.target.value)}
+          rows={4}
+          className="comments-textarea"
         />
 
         <div className="signature-container">

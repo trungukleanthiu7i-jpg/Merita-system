@@ -213,6 +213,7 @@ export default function AdminDashboard() {
             <th>NIPT</th>
             <th>Adresă</th>
             <th>Responsabil</th>
+            <th>Comentarii</th>
             <th>Semnătură</th>
             <th>Detalii</th>
             <th>Șterge</th>
@@ -230,7 +231,7 @@ export default function AdminDashboard() {
             ))
           ) : (
             <tr>
-              <td colSpan="12" style={{ textAlign: "center" }}>
+              <td colSpan="13" style={{ textAlign: "center" }}>
                 Nu s-a găsit nicio comandă
               </td>
             </tr>
@@ -368,9 +369,12 @@ function OrderRow({ order, deleteOrder, products }) {
   const documentTypeLabel =
     order.documentType === "aviz" ? "Aviz" : "Factură";
 
+  const commentsText = order.comments?.trim() ? order.comments : "—";
+
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
     const logo = "/zdrava.png";
+
     doc.addImage(logo, "PNG", 150, 10, 60, 60);
     doc.setFontSize(18);
     doc.text(`Comanda #${order.orderNumber}`, 14, 20);
@@ -386,10 +390,17 @@ function OrderRow({ order, deleteOrder, products }) {
     doc.text(`NIPT: ${order.cui}`, 14, 56);
     doc.text(`Adresă: ${order.address}`, 14, 63);
     doc.text(`Responsabil:`, 14, 73);
-    doc.text(order.responsiblePerson, 14, 80);
+    doc.text(order.responsiblePerson || "—", 14, 80);
+
+    doc.text("Comentarii:", 14, 90);
+    const splitComments = doc.splitTextToSize(commentsText, 180);
+    doc.text(splitComments, 14, 97);
+
+    const commentsHeight = splitComments.length * 7;
+    const signatureY = 100 + commentsHeight;
 
     if (order.signature) {
-      doc.addImage(order.signature, "PNG", 14, 88, 50, 25);
+      doc.addImage(order.signature, "PNG", 14, signatureY, 50, 25);
     }
 
     const rows = order.items.map((item) => {
@@ -400,7 +411,7 @@ function OrderRow({ order, deleteOrder, products }) {
     });
 
     autoTable(doc, {
-      startY: 120,
+      startY: signatureY + 35,
       head: [["Produs", "Box", "Unități/Cutie", "Total Unități", "Preț", "Cod Bare"]],
       body: rows.map((r) => [
         r.item.name,
@@ -477,6 +488,7 @@ function OrderRow({ order, deleteOrder, products }) {
         <td>{order.cui}</td>
         <td>{order.address}</td>
         <td>{order.responsiblePerson}</td>
+        <td>{commentsText}</td>
         <td>
           {order.signature ? (
             <img src={order.signature} alt="Semnătură" className="signature-img" />
@@ -511,11 +523,14 @@ function OrderRow({ order, deleteOrder, products }) {
 
       {open && (
         <tr className="details-row">
-          <td colSpan="12">
+          <td colSpan="13">
             <div className="details-box">
               <h3>Produse</h3>
               <p style={{ marginBottom: "12px", fontWeight: "600" }}>
                 Tip document: {documentTypeLabel}
+              </p>
+              <p style={{ marginBottom: "12px" }}>
+                <strong>Comentarii:</strong> {commentsText}
               </p>
               <table className="details-products-table">
                 <thead>

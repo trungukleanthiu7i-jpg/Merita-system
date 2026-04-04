@@ -15,6 +15,7 @@ router.post("/create", async (req, res) => {
       cui,
       address,
       responsiblePerson,
+      comments,
       signature,
     } = req.body;
 
@@ -26,11 +27,11 @@ router.post("/create", async (req, res) => {
       cui,
       address,
       responsiblePerson,
+      comments,
       itemsCount: Array.isArray(items) ? items.length : 0,
       hasSignature: !!signature,
     });
 
-    // Validate required fields
     if (
       !items ||
       !Array.isArray(items) ||
@@ -48,13 +49,9 @@ router.post("/create", async (req, res) => {
       });
     }
 
-    // Validate document type
     const normalizedDocumentType =
       documentType === "aviz" ? "aviz" : "invoice";
 
-    console.log("🧾 Normalized documentType =", normalizedDocumentType);
-
-    // Validate each item and stock
     for (const item of items) {
       if (!item._id) {
         return res
@@ -76,7 +73,6 @@ router.post("/create", async (req, res) => {
       }
     }
 
-    // Calculate total price
     const total = items.reduce((sum, item) => {
       const boxes = Number(item.boxes || 0);
       const unitsPerBox = Number(item.unitsPerBox || 1);
@@ -86,11 +82,9 @@ router.post("/create", async (req, res) => {
       return sum + totalUnits * price;
     }, 0);
 
-    // Generate next order number safely
     const lastOrder = await Order.findOne().sort({ createdAt: -1 });
     const nextOrderNumber = lastOrder ? lastOrder.orderNumber + 1 : 1;
 
-    // Create new order
     const newOrder = new Order({
       orderNumber: nextOrderNumber,
       documentType: normalizedDocumentType,
@@ -100,6 +94,7 @@ router.post("/create", async (req, res) => {
       cui: cui.trim(),
       address: address.trim(),
       responsiblePerson: responsiblePerson.trim(),
+      comments: (comments || "").trim(),
       signature,
       total,
       createdAt: new Date(),
@@ -110,6 +105,7 @@ router.post("/create", async (req, res) => {
       documentType: newOrder.documentType,
       agentName: newOrder.agentName,
       magazinName: newOrder.magazinName,
+      comments: newOrder.comments,
     });
 
     const savedOrder = await newOrder.save();
@@ -118,6 +114,7 @@ router.post("/create", async (req, res) => {
       _id: savedOrder._id,
       orderNumber: savedOrder.orderNumber,
       documentType: savedOrder.documentType,
+      comments: savedOrder.comments,
     });
 
     res.status(201).json({
@@ -147,6 +144,7 @@ router.get("/", async (req, res) => {
         { agentName: { $regex: search, $options: "i" } },
         { magazinName: { $regex: search, $options: "i" } },
         { documentType: { $regex: search, $options: "i" } },
+        { comments: { $regex: search, $options: "i" } },
       ];
     }
 

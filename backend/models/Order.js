@@ -53,8 +53,13 @@ const OrderSchema = new mongoose.Schema({
     required: true,
   },
 
+  comments: {
+    type: String,
+    default: "",
+  },
+
   signature: {
-    type: String, // base64 image
+    type: String,
     required: true,
   },
 
