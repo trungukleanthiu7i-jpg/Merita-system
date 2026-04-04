@@ -29,9 +29,6 @@ export default function AdminDashboard() {
     products: {},
   });
 
-  // ===============================
-  // FETCH PRODUSE PENTRU BARCODE
-  // ===============================
   const fetchProducts = useCallback(async () => {
     try {
       const res = await axiosClient.get("/products");
@@ -42,9 +39,6 @@ export default function AdminDashboard() {
     }
   }, []);
 
-  // ===============================
-  // FETCH TOATE POROSILE
-  // ===============================
   const fetchOrders = useCallback(async () => {
     try {
       const res = await axiosClient.get("/admin/orders", {
@@ -62,9 +56,6 @@ export default function AdminDashboard() {
     }
   }, [search, selectedDate]);
 
-  // ===============================
-  // FETCH MAGAZINE + AGENTI
-  // ===============================
   const fetchMagazinesAndAgents = useCallback(async () => {
     try {
       const res = await axiosClient.get("/admin/orders");
@@ -82,9 +73,6 @@ export default function AdminDashboard() {
     fetchMagazinesAndAgents();
   }, [fetchOrders, fetchMagazinesAndAgents, fetchProducts]);
 
-  // ===============================
-  // ȘTERGERE POROSIE
-  // ===============================
   const deleteOrder = async (id) => {
     if (!window.confirm("Doriți să ștergeți această comandă?")) return;
     try {
@@ -95,15 +83,9 @@ export default function AdminDashboard() {
     }
   };
 
-  // ===============================
-  // NAVIGAȚIE
-  // ===============================
   const handleViewStatistics = () => navigate("/admin/stats");
   const handleAddProduct = () => navigate("/admin/add-product");
 
-  // ===============================
-  // FILTRU DYQAN
-  // ===============================
   const fetchMagazineOrders = async () => {
     if (!selectedMagazine) return alert("Vă rugăm să selectați un magazin");
     try {
@@ -129,9 +111,6 @@ export default function AdminDashboard() {
     }
   };
 
-  // ===============================
-  // FILTRU AGENT
-  // ===============================
   const fetchAgentOrders = async () => {
     if (!selectedAgent) return alert("Vă rugăm să selectați un agent");
     try {
@@ -184,7 +163,6 @@ export default function AdminDashboard() {
         </button>
       </div>
 
-      {/* Filtre */}
       <div className="filters">
         <input
           type="text"
@@ -199,7 +177,6 @@ export default function AdminDashboard() {
         />
       </div>
 
-      {/* Tabel porosi */}
       <h2>Toate comenzile</h2>
       <table>
         <thead>
@@ -239,7 +216,6 @@ export default function AdminDashboard() {
         </tbody>
       </table>
 
-      {/* Sectiune Magazin */}
       <div className="magazine-section">
         <h2>Comenzile pe magazin</h2>
         <div className="filters">
@@ -291,7 +267,6 @@ export default function AdminDashboard() {
         )}
       </div>
 
-      {/* Sectiune Agent */}
       <div className="agent-section">
         <h2>Comenzile pe agent</h2>
         <div className="filters">
@@ -351,9 +326,6 @@ export default function AdminDashboard() {
   );
 }
 
-// ==========================================
-// COMPONENT RÂND POROSIE CU BARCODE
-// ==========================================
 function OrderRow({ order, deleteOrder, products }) {
   const [open, setOpen] = useState(false);
 
@@ -372,97 +344,182 @@ function OrderRow({ order, deleteOrder, products }) {
   const commentsText = order.comments?.trim() ? order.comments : "—";
 
   const handleDownloadPDF = () => {
-    const doc = new jsPDF();
+    const doc = new jsPDF("p", "mm", "a4");
+    const pageWidth = doc.internal.pageSize.getWidth();
+
     const logo = "/zdrava.png";
+    const marginX = 14;
+    let currentY = 16;
 
-    doc.addImage(logo, "PNG", 150, 10, 60, 60);
-    doc.setFontSize(18);
-    doc.text(`Comanda #${order.orderNumber}`, 14, 20);
-    doc.setFontSize(12);
-    doc.text(`Tip document: ${documentTypeLabel}`, 14, 28);
-    doc.text(`Agent: ${order.agentName}`, 14, 35);
-    doc.text(`Magazin: ${order.magazinName}`, 14, 42);
-    doc.text(
-      `Data: ${new Date(order.createdAt).toLocaleDateString()}`,
-      14,
-      49
-    );
-    doc.text(`NIPT: ${order.cui}`, 14, 56);
-    doc.text(`Adresă: ${order.address}`, 14, 63);
-    doc.text(`Responsabil:`, 14, 73);
-    doc.text(order.responsiblePerson || "—", 14, 80);
-
-    doc.text("Comentarii:", 14, 90);
-    const splitComments = doc.splitTextToSize(commentsText, 180);
-    doc.text(splitComments, 14, 97);
-
-    const commentsHeight = splitComments.length * 7;
-    const signatureY = 100 + commentsHeight;
-
-    if (order.signature) {
-      doc.addImage(order.signature, "PNG", 14, signatureY, 50, 25);
-    }
+    const labelValue = (label, value, y) => {
+      doc.setFont("helvetica", "bold");
+      doc.text(label, marginX, y);
+      doc.setFont("helvetica", "normal");
+      doc.text(String(value || "—"), marginX + 32, y);
+    };
 
     const rows = order.items.map((item) => {
       const totalUnits =
         Number(item.quantity || 0) +
         Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
-      return { item, totalUnits };
+
+      return {
+        item,
+        totalUnits,
+      };
     });
 
+    doc.setFillColor(248, 249, 251);
+    doc.roundedRect(10, 10, 190, 38, 3, 3, "F");
+
+    try {
+      doc.addImage(logo, "PNG", pageWidth - 52, 15, 34, 16);
+    } catch (err) {
+      console.warn("Logo could not be loaded in PDF:", err);
+    }
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text(`Comanda #${order.orderNumber}`, marginX, 22);
+
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      `Generată la: ${new Date(order.createdAt).toLocaleDateString()}`,
+      marginX,
+      30
+    );
+
+    doc.setFont("helvetica", "bold");
+    doc.text(`Tip document: ${documentTypeLabel}`, marginX, 38);
+
+    currentY = 58;
+
+    doc.setDrawColor(220, 220, 220);
+    doc.roundedRect(10, currentY - 8, 190, 52, 3, 3);
+
+    labelValue("Agent:", order.agentName, currentY);
+    currentY += 8;
+
+    labelValue("Magazin:", order.magazinName, currentY);
+    currentY += 8;
+
+    labelValue("Data:", new Date(order.createdAt).toLocaleDateString(), currentY);
+    currentY += 8;
+
+    labelValue("NIPT:", order.cui, currentY);
+    currentY += 8;
+
+    labelValue("Adresă:", order.address, currentY);
+    currentY += 8;
+
+    labelValue("Responsabil:", order.responsiblePerson, currentY);
+    currentY += 12;
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Comentarii:", marginX, currentY);
+
+    const wrappedComments = doc.splitTextToSize(commentsText, 165);
+    const commentsHeight = Math.max(12, wrappedComments.length * 6 + 6);
+
+    doc.setDrawColor(220, 220, 220);
+    doc.roundedRect(10, currentY + 3, 190, commentsHeight, 3, 3);
+
+    doc.setFont("helvetica", "normal");
+    doc.text(wrappedComments, marginX + 3, currentY + 10);
+
+    currentY += commentsHeight + 16;
+
+    doc.setFont("helvetica", "bold");
+    doc.text("Semnătură:", marginX, currentY);
+
+    doc.setDrawColor(220, 220, 220);
+    doc.roundedRect(10, currentY + 3, 65, 32, 3, 3);
+
+    if (order.signature) {
+      try {
+        doc.addImage(order.signature, "PNG", 14, currentY + 7, 55, 22);
+      } catch (err) {
+        console.warn("Signature could not be loaded in PDF:", err);
+      }
+    }
+
+    currentY += 42;
+
     autoTable(doc, {
-      startY: signatureY + 35,
-      head: [["Produs", "Box", "Unități/Cutie", "Total Unități", "Preț", "Cod Bare"]],
+      startY: currentY,
+      head: [["Produs", "Box", "Buc/Cutie", "Total Buc", "Preț", "Cod Bare"]],
       body: rows.map((r) => [
-        r.item.name,
-        r.item.boxes,
-        r.item.unitsPerBox,
-        r.totalUnits,
-        (r.totalUnits * Number(r.item.price || 0)).toFixed(2) + " RON",
+        r.item.name || "—",
+        String(r.item.boxes ?? 0),
+        String(r.item.unitsPerBox ?? 1),
+        String(r.totalUnits),
+        `${(r.totalUnits * Number(r.item.price || 0)).toFixed(2)} RON`,
         "",
       ]),
+      theme: "grid",
+      styles: {
+        font: "helvetica",
+        fontSize: 9,
+        cellPadding: 3,
+        lineColor: [220, 220, 220],
+        lineWidth: 0.2,
+        textColor: [40, 40, 40],
+        valign: "middle",
+      },
+      headStyles: {
+        fillColor: [33, 150, 243],
+        textColor: [255, 255, 255],
+        fontStyle: "bold",
+        fontSize: 9,
+        halign: "center",
+      },
+      bodyStyles: {
+        halign: "center",
+      },
+      columnStyles: {
+        0: { halign: "left", cellWidth: 62 },
+        1: { cellWidth: 16 },
+        2: { cellWidth: 22 },
+        3: { cellWidth: 22 },
+        4: { cellWidth: 28 },
+        5: { cellWidth: 30 },
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252],
+      },
       didDrawCell: (data) => {
-        if (
-          data.column.index === data.table.columns.length - 1 &&
-          data.cell.section === "body"
-        ) {
+        if (data.column.index === 5 && data.cell.section === "body") {
           const item = rows[data.row.index].item;
           const barcodeValue =
             products.find((p) => p.name === item.name)?.barcode || "";
+
           if (!barcodeValue) return;
 
           const canvas = document.createElement("canvas");
           JsBarcode(canvas, barcodeValue, {
             format: "CODE128",
-            width: 3,
-            height: 40,
+            width: 1.2,
+            height: 18,
             displayValue: false,
             margin: 0,
           });
 
-          const cellPadding = 2;
-          const scale = Math.min(
-            1,
-            (data.cell.width - cellPadding * 2) / canvas.width
-          );
-          const imgWidth = canvas.width * scale;
-          const imgHeight = canvas.height * scale;
           const imgData = canvas.toDataURL("image/png");
 
-          doc.addImage(
-            imgData,
-            "PNG",
-            data.cell.x + cellPadding,
-            data.cell.y + cellPadding,
-            imgWidth,
-            imgHeight
-          );
+          const imgWidth = 24;
+          const imgHeight = 8;
+          const x = data.cell.x + (data.cell.width - imgWidth) / 2;
+          const y = data.cell.y + 1.5;
 
-          doc.setFontSize(4);
+          doc.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
+
+          doc.setFontSize(5);
+          doc.setTextColor(60, 60, 60);
           doc.text(
             barcodeValue,
             data.cell.x + data.cell.width / 2,
-            data.cell.y + cellPadding + imgHeight + 2,
+            data.cell.y + 12,
             { align: "center" }
           );
         }
@@ -470,10 +527,17 @@ function OrderRow({ order, deleteOrder, products }) {
     });
 
     const finalY = doc.lastAutoTable.finalY + 10;
-    doc.setFontSize(14);
-    doc.text(`TOTAL: ${total.toFixed(2)} RON`, 14, finalY);
 
-    doc.save(`Comanda${order.orderNumber}.pdf`);
+    doc.setFillColor(248, 249, 251);
+    doc.roundedRect(130, finalY - 4, 70, 14, 3, 3, "F");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.text(`TOTAL: ${total.toFixed(2)} RON`, 165, finalY + 5, {
+      align: "center",
+    });
+
+    doc.save(`Comanda-${order.orderNumber}.pdf`);
   };
 
   return (
