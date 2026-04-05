@@ -144,7 +144,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="admin-dashboard">
-      <h1>Paneli Administrator</h1>
+      <h1>Paneli Administrator TEST</h1>
 
       <div className="admin-buttons">
         <button
