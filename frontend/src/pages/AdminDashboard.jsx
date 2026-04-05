@@ -88,31 +88,39 @@ export default function AdminDashboard() {
 
   const fetchMagazineOrders = async () => {
     if (!selectedMagazine) return alert("Vă rugăm să selectați un magazin");
+
     try {
       const res = await axiosClient.get("/admin/magazine-orders", {
         params: { magazinName: selectedMagazine, startDate, endDate },
       });
+
       const data = Array.isArray(res.data) ? res.data : [];
       const stats = {};
+
       data.forEach((order) => {
         order.items?.forEach((item) => {
           const totalUnits =
             Number(item.quantity || 0) +
             Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+
           const totalBoxes = Number(item.boxes || 0);
+
           if (!stats[item.name]) stats[item.name] = { units: 0, boxes: 0 };
+
           stats[item.name].units += totalUnits;
           stats[item.name].boxes += totalBoxes;
         });
       });
+
       setMagazineProductStats(stats);
     } catch (err) {
-      console.error("Eroare la preluarea comenzilor magazinului.:", err);
+      console.error("Eroare la preluarea comenzilor magazinului:", err);
     }
   };
 
   const fetchAgentOrders = async () => {
     if (!selectedAgent) return alert("Vă rugăm să selectați un agent");
+
     try {
       const res = await axiosClient.get("/admin/agent-orders", {
         params: {
@@ -121,22 +129,33 @@ export default function AdminDashboard() {
           endDate: agentEndDate,
         },
       });
+
       const data = Array.isArray(res.data) ? res.data : [];
       let totalRevenue = 0;
       const products = {};
+
       data.forEach((order) => {
         order.items?.forEach((item) => {
           const totalUnits =
             Number(item.quantity || 0) +
             Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
+
           const totalBoxes = Number(item.boxes || 0);
+
           totalRevenue += totalUnits * Number(item.price || 0);
+
           if (!products[item.name]) products[item.name] = { units: 0, boxes: 0 };
+
           products[item.name].units += totalUnits;
           products[item.name].boxes += totalBoxes;
         });
       });
-      setAgentStats({ totalRevenue, totalOrders: data.length, products });
+
+      setAgentStats({
+        totalRevenue,
+        totalOrders: data.length,
+        products,
+      });
     } catch (err) {
       console.error("Eroare la preluarea comenzilor agenților:", err);
     }
@@ -144,7 +163,7 @@ export default function AdminDashboard() {
 
   return (
     <div className="admin-dashboard">
-      <h1>Paneli Administrator TEST</h1>
+      <h1>Paneli Administrator</h1>
 
       <div className="admin-buttons">
         <button
@@ -154,6 +173,7 @@ export default function AdminDashboard() {
         >
           📊 Vezi statistici
         </button>
+
         <button
           type="button"
           className="add-product-btn"
@@ -170,6 +190,7 @@ export default function AdminDashboard() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+
         <input
           type="date"
           value={selectedDate}
@@ -178,6 +199,7 @@ export default function AdminDashboard() {
       </div>
 
       <h2>Toate comenzile</h2>
+
       <table>
         <thead>
           <tr>
@@ -196,6 +218,7 @@ export default function AdminDashboard() {
             <th>Șterge</th>
           </tr>
         </thead>
+
         <tbody>
           {orders.length > 0 ? (
             orders.map((order) => (
@@ -218,6 +241,7 @@ export default function AdminDashboard() {
 
       <div className="magazine-section">
         <h2>Comenzile pe magazin</h2>
+
         <div className="filters">
           <select
             value={selectedMagazine}
@@ -230,16 +254,19 @@ export default function AdminDashboard() {
               </option>
             ))}
           </select>
+
           <input
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
           />
+
           <input
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
           />
+
           <button type="button" onClick={fetchMagazineOrders}>
             Preia comenzile
           </button>
@@ -269,6 +296,7 @@ export default function AdminDashboard() {
 
       <div className="agent-section">
         <h2>Comenzile pe agent</h2>
+
         <div className="filters">
           <select
             value={selectedAgent}
@@ -281,16 +309,19 @@ export default function AdminDashboard() {
               </option>
             ))}
           </select>
+
           <input
             type="date"
             value={agentStartDate}
             onChange={(e) => setAgentStartDate(e.target.value)}
           />
+
           <input
             type="date"
             value={agentEndDate}
             onChange={(e) => setAgentEndDate(e.target.value)}
           />
+
           <button type="button" onClick={fetchAgentOrders}>
             Preia comenzile
           </button>
@@ -350,8 +381,6 @@ function OrderRow({ order, deleteOrder, products }) {
 
     const margin = 12;
     const contentWidth = pageWidth - margin * 2;
-    const leftColX = margin + 4;
-    const rightColX = pageWidth - 72;
     const logoPath = "/zdrava.png";
 
     const formatDate = (date) => new Date(date).toLocaleDateString();
@@ -361,158 +390,108 @@ function OrderRow({ order, deleteOrder, products }) {
         Number(item.quantity || 0) +
         Number(item.boxes || 0) * Number(item.unitsPerBox || 0);
 
-      return {
-        item,
-        totalUnits,
-      };
+      return { item, totalUnits };
     });
 
-    // Page background frame
-    doc.setDrawColor(225, 229, 235);
-    doc.setLineWidth(0.5);
-    doc.roundedRect(7, 7, pageWidth - 14, pageHeight - 14, 4, 4);
+    doc.setFillColor(245, 247, 250);
+    doc.rect(0, 0, pageWidth, pageHeight, "F");
 
-    // Top header band
-    doc.setFillColor(21, 101, 192);
-    doc.roundedRect(margin, margin, contentWidth, 24, 3, 3, "F");
+    doc.setFillColor(18, 94, 163);
+    doc.roundedRect(margin, margin, contentWidth, 28, 4, 4, "F");
 
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.text(`Comanda #${order.orderNumber}`, leftColX, 27);
+    doc.setFontSize(20);
+    doc.text(`Comanda #${order.orderNumber}`, margin + 6, 24);
 
-    doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    doc.text(`Data: ${formatDate(order.createdAt)}`, leftColX, 33);
-
-    doc.setFont("helvetica", "bold");
-    doc.text(`Tip: ${documentTypeLabel}`, leftColX + 42, 33);
+    doc.setFontSize(10);
+    doc.text(`Data: ${formatDate(order.createdAt)}`, margin + 6, 31);
+    doc.text(`Tip document: ${documentTypeLabel}`, margin + 45, 31);
 
     try {
       doc.setFillColor(255, 255, 255);
-      doc.roundedRect(pageWidth - 58, 15, 40, 18, 3, 3, "F");
-      doc.addImage(logoPath, "PNG", pageWidth - 55, 17, 34, 14);
+      doc.roundedRect(pageWidth - 58, 16, 38, 18, 3, 3, "F");
+      doc.addImage(logoPath, "PNG", pageWidth - 55, 18, 32, 13);
     } catch (err) {
       console.warn("Logo could not be loaded in PDF:", err);
     }
 
-    doc.setTextColor(35, 35, 35);
+    doc.setTextColor(25, 25, 25);
 
-    // Info boxes
-    const infoTop = 42;
-    const leftBoxWidth = 118;
-    const rightBoxWidth = contentWidth - leftBoxWidth - 6;
+    const leftX = margin;
+    const rightX = pageWidth / 2 + 2;
+    const boxY = 48;
+    const boxW = contentWidth / 2 - 4;
+    const boxH = 54;
 
-    doc.setFillColor(248, 250, 252);
-    doc.roundedRect(margin, infoTop, leftBoxWidth, 58, 3, 3, "F");
-    doc.roundedRect(
-      margin + leftBoxWidth + 6,
-      infoTop,
-      rightBoxWidth,
-      58,
-      3,
-      3,
-      "F"
-    );
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(leftX, boxY, boxW, boxH, 3, 3, "F");
+    doc.roundedRect(rightX, boxY, boxW, boxH, 3, 3, "F");
 
     doc.setDrawColor(220, 224, 230);
-    doc.roundedRect(margin, infoTop, leftBoxWidth, 58, 3, 3);
-    doc.roundedRect(
-      margin + leftBoxWidth + 6,
-      infoTop,
-      rightBoxWidth,
-      58,
-      3,
-      3
-    );
+    doc.roundedRect(leftX, boxY, boxW, boxH, 3, 3);
+    doc.roundedRect(rightX, boxY, boxW, boxH, 3, 3);
 
-    const drawLabelValue = (label, value, x, y, valueX) => {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text("Detalii comandă", leftX + 4, boxY + 8);
+    doc.text("Semnătură", rightX + 4, boxY + 8);
+
+    const drawRow = (label, value, y, valueX) => {
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(10);
-      doc.text(label, x, y);
+      doc.setFontSize(9.5);
+      doc.text(label, leftX + 4, y);
       doc.setFont("helvetica", "normal");
       doc.text(String(value || "—"), valueX, y);
     };
 
-    let y = infoTop + 10;
-    drawLabelValue("Agent:", order.agentName, margin + 4, y, margin + 28);
-    y += 9;
-    drawLabelValue("Magazin:", order.magazinName, margin + 4, y, margin + 28);
-    y += 9;
-    drawLabelValue("NIPT:", order.cui, margin + 4, y, margin + 28);
-    y += 9;
-    drawLabelValue("Adresă:", order.address, margin + 4, y, margin + 28);
-    y += 9;
-    drawLabelValue(
-      "Responsabil:",
-      order.responsiblePerson,
-      margin + 4,
-      y,
-      margin + 36
-    );
+    let infoY = boxY + 16;
+    drawRow("Agent:", order.agentName, infoY, leftX + 28);
+    infoY += 8;
+    drawRow("Magazin:", order.magazinName, infoY, leftX + 28);
+    infoY += 8;
+    drawRow("NIPT:", order.cui, infoY, leftX + 28);
+    infoY += 8;
+    drawRow("Adresă:", order.address, infoY, leftX + 28);
+    infoY += 8;
+    drawRow("Responsabil:", order.responsiblePerson, infoY, leftX + 36);
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.text("Semnătură", margin + leftBoxWidth + 10, infoTop + 10);
-
-    doc.setFillColor(255, 255, 255);
-    doc.roundedRect(
-      margin + leftBoxWidth + 12,
-      infoTop + 16,
-      rightBoxWidth - 12,
-      34,
-      3,
-      3,
-      "F"
-    );
-    doc.setDrawColor(210, 214, 220);
-    doc.roundedRect(
-      margin + leftBoxWidth + 12,
-      infoTop + 16,
-      rightBoxWidth - 12,
-      34,
-      3,
-      3
-    );
+    doc.setFillColor(248, 249, 252);
+    doc.roundedRect(rightX + 4, boxY + 12, boxW - 8, 36, 3, 3, "F");
+    doc.setDrawColor(220, 224, 230);
+    doc.roundedRect(rightX + 4, boxY + 12, boxW - 8, 36, 3, 3);
 
     if (order.signature) {
       try {
-        doc.addImage(
-          order.signature,
-          "PNG",
-          margin + leftBoxWidth + 16,
-          infoTop + 20,
-          rightBoxWidth - 20,
-          24
-        );
+        doc.addImage(order.signature, "PNG", rightX + 8, boxY + 16, boxW - 16, 26);
       } catch (err) {
         console.warn("Signature could not be loaded in PDF:", err);
       }
     }
 
-    // Comments section
-    const commentsY = 108;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(21, 101, 192);
-    doc.text("Comentarii", margin, commentsY);
-
-    const wrappedComments = doc.splitTextToSize(commentsText, contentWidth - 8);
+    const commentsY = 110;
+    doc.setFillColor(255, 255, 255);
+    const wrappedComments = doc.splitTextToSize(commentsText, contentWidth - 10);
     const commentsHeight = Math.max(18, wrappedComments.length * 5 + 10);
 
-    doc.setFillColor(252, 252, 252);
-    doc.roundedRect(margin, commentsY + 4, contentWidth, commentsHeight, 3, 3, "F");
+    doc.roundedRect(margin, commentsY, contentWidth, commentsHeight + 10, 3, 3, "F");
     doc.setDrawColor(220, 224, 230);
-    doc.roundedRect(margin, commentsY + 4, contentWidth, commentsHeight, 3, 3);
+    doc.roundedRect(margin, commentsY, contentWidth, commentsHeight + 10, 3, 3);
 
-    doc.setTextColor(40, 40, 40);
+    doc.setTextColor(18, 94, 163);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text("Comentarii", margin + 4, commentsY + 8);
+
+    doc.setTextColor(30, 30, 30);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text(wrappedComments, margin + 4, commentsY + 12);
+    doc.text(wrappedComments, margin + 4, commentsY + 16);
 
-    // Products title
-    const tableStartY = commentsY + commentsHeight + 16;
-    doc.setTextColor(21, 101, 192);
+    const tableStartY = commentsY + commentsHeight + 22;
+
+    doc.setTextColor(18, 94, 163);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
     doc.text("Produse comandate", margin, tableStartY);
@@ -533,14 +512,14 @@ function OrderRow({ order, deleteOrder, products }) {
       styles: {
         font: "helvetica",
         fontSize: 9,
-        cellPadding: 3,
+        cellPadding: 3.2,
         lineColor: [220, 224, 230],
         lineWidth: 0.2,
-        textColor: [40, 40, 40],
+        textColor: [35, 35, 35],
         valign: "middle",
       },
       headStyles: {
-        fillColor: [33, 150, 243],
+        fillColor: [18, 94, 163],
         textColor: [255, 255, 255],
         fontStyle: "bold",
         fontSize: 9,
@@ -550,15 +529,15 @@ function OrderRow({ order, deleteOrder, products }) {
         halign: "center",
       },
       columnStyles: {
-        0: { halign: "left", cellWidth: 68 },
+        0: { halign: "left", cellWidth: 72 },
         1: { cellWidth: 16 },
         2: { cellWidth: 24 },
         3: { cellWidth: 22 },
         4: { cellWidth: 30 },
-        5: { cellWidth: 28 },
+        5: { cellWidth: 24 },
       },
       alternateRowStyles: {
-        fillColor: [248, 250, 252],
+        fillColor: [249, 250, 252],
       },
       didDrawCell: (data) => {
         if (data.column.index === 5 && data.cell.section === "body") {
@@ -571,26 +550,26 @@ function OrderRow({ order, deleteOrder, products }) {
           const canvas = document.createElement("canvas");
           JsBarcode(canvas, barcodeValue, {
             format: "CODE128",
-            width: 1.2,
-            height: 18,
+            width: 1.1,
+            height: 16,
             displayValue: false,
             margin: 0,
           });
 
           const imgData = canvas.toDataURL("image/png");
-          const imgWidth = 22;
-          const imgHeight = 7;
+          const imgWidth = 19;
+          const imgHeight = 6;
           const x = data.cell.x + (data.cell.width - imgWidth) / 2;
-          const y = data.cell.y + 1.5;
+          const y = data.cell.y + 1.2;
 
           doc.addImage(imgData, "PNG", x, y, imgWidth, imgHeight);
 
-          doc.setFontSize(5);
+          doc.setFontSize(4.8);
           doc.setTextColor(70, 70, 70);
           doc.text(
             barcodeValue,
             data.cell.x + data.cell.width / 2,
-            data.cell.y + 11,
+            data.cell.y + 10,
             { align: "center" }
           );
         }
@@ -599,26 +578,26 @@ function OrderRow({ order, deleteOrder, products }) {
 
     const finalY = doc.lastAutoTable.finalY + 10;
 
-    doc.setFillColor(21, 101, 192);
-    doc.roundedRect(pageWidth - 82, finalY, 70, 16, 3, 3, "F");
+    doc.setFillColor(18, 94, 163);
+    doc.roundedRect(pageWidth - 84, finalY, 72, 17, 3, 3, "F");
 
     doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(13);
-    doc.text(`TOTAL: ${total.toFixed(2)} RON`, pageWidth - 47, finalY + 10, {
+    doc.text(`TOTAL: ${total.toFixed(2)} RON`, pageWidth - 48, finalY + 10.5, {
       align: "center",
     });
 
-    doc.setTextColor(100, 100, 100);
+    doc.setTextColor(110, 110, 110);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.text(
-      "Document generat automat din sistemul de comenzi.",
+      "Document generat automat din sistemul Merita.",
       margin,
-      pageHeight - 12
+      pageHeight - 10
     );
 
-    doc.save(`Comanda-${order.orderNumber}.pdf`);
+    doc.save(`TEST-PDF-${order.orderNumber}.pdf`);
   };
 
   return (
